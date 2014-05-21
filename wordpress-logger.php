@@ -62,12 +62,23 @@ class WP_Error_Logger {
 		register_post_type(
 			'wp-logger',
 			array(
-				'label'           => 'Errors',
-				'public'          => false,
-				'show_ui'         => true,
-				'rewrite'         => false,
-				'menu_position'   => 100,
-				'supports'        => false,
+				'public'        => false,
+				'show_ui'       => true,
+				'rewrite'       => false,
+				'menu_position' => 100,
+				'supports'      => false,
+				'labels'        => array(
+					'name'               => __( 'Errors', 'wordpress-error-logger' ),
+					'singular_name'      => __( 'Error', 'wordpress-error-logger' ),
+					'add_new'            => __( 'Add New Error', 'wordpress-error-logger' ),
+					'add_new_item'       => __( 'Add New Error', 'wordpress-error-logger' ),
+					'edit_item'          => __( 'Edit Error', 'wordpress-error-logger' ),
+					'new_item'           => __( 'Add New Error', 'wordpress-error-logger' ),
+					'view_item'          => __( 'View Error', 'wordpress-error-logger' ),
+					'search_items'       => __( 'Search Errors', 'wordpress-error-logger' ),
+					'not_found'          => __( 'No errors found', 'wordpress-error-logger' ),
+					'not_found_in_trash' => __( 'No errors found in trash', 'wordpress-error-logger' )
+				),
 				'capabilities' => array(
 					'edit_post'          => 'update_core',
 					'read_post'          => 'update_core',
