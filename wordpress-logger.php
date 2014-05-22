@@ -86,7 +86,8 @@ class WP_Error_Logger {
 					'edit_posts'         => 'update_core',
 					'edit_others_posts'  => 'update_core',
 					'publish_posts'      => 'update_core',
-					'read_private_posts' => 'update_core'
+					'read_private_posts' => 'update_core',
+					'create_posts'       => false,
 				),
 			)
 		);
