@@ -34,6 +34,8 @@ class WP_Error_Logger {
 		add_filter( 'manage_wp-logger_posts_columns', array( $this, 'modify_cpt_columns' ) );
 		add_action( 'manage_posts_custom_column', array( $this, 'add_column_content' ) , 10, 2 );
 		add_filter( 'manage_edit-wp-logger_sortable_columns', array( $this, 'add_sortable_columns' ) );
+		add_action( 'pre_get_posts', array( $this, 'filter_logger_admin_search' ) );
+		add_filter( 'get_search_query', array( $this, 'filter_search_query' ) );
 	}
 
 	static function add_error( $error ) {
@@ -58,7 +60,6 @@ class WP_Error_Logger {
 	}
 
 	function init() {
-		global $wp_roles;
 
 		register_post_type(
 			'wp-logger',
@@ -92,6 +93,7 @@ class WP_Error_Logger {
 				),
 			)
 		);
+
 	}
 
 	function add_meta_boxes() {
@@ -130,14 +132,14 @@ class WP_Error_Logger {
 	}
 
 	function modify_cpt_columns( $cols ) {
-		$cols = array(
+		
+		return array(
 			'cb'         => '<input type="checkbox" />',
 			'error_code' => __( 'Error Code', 'wordpress-error-logger' ),
 			'error_msg'  => __( 'Error Message', 'wordpress-error-logger' ),
 			'error_date' => __( 'Date', 'wordpress-error-logger' ),
 		);
 
-		return $cols;
 	}
 
 	function add_column_content( $column, $post_id ) {
@@ -166,7 +168,51 @@ class WP_Error_Logger {
 			'error_msg'  => 'error_msg',
 			'error_date' => 'error_date'
 		);
-		
+
+	}
+
+	function filter_logger_admin_search( $query ) {
+
+		if ( is_admin() && 'wp-logger' == $query->get('post_type') ) {
+
+			// Get the existing meta_query so we can update it
+			$meta_query = $query->get( 'meta_query' );
+
+			// Get the search parameter
+			$search = $query->get( 's' );
+
+			// Any meta key added here will be added to search
+			$meta_keys = array( '_wp_logger_error_msg', '_wp_logger_error_code' );
+
+			foreach ( $meta_keys as $meta_key ) {
+				$meta_query[] = array(
+					'key'     => $meta_key,
+					'compare' => 'LIKE',
+					'value'   => $search
+				);
+			}
+
+			// OR the different meta_queries 
+			$meta_query['relation'] = 'OR';
+
+			// Update the query to include 
+			$query->set( 'meta_query', $meta_query );
+
+			// Remove default search query parameters
+			$query->set( 's', '' );
+			$query->set( 'post_title', '' );
+			$query->set( 'post_content', '' );
+		}
+	}
+
+	function filter_search_query( $search ) {
+		global $post;
+
+		if ( is_admin() && 'wp-logger' == $post->post_type && ! empty( $_GET['s']  ) ) {
+			return esc_html( urldecode( $_GET['s'] ) );
+		}
+
+		return $search;
 	}
 }
 
