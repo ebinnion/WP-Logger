@@ -18,7 +18,7 @@ class WP_Error_Logger {
 	private static $instance = null;
 
 	/**
-	 * Adds all of the filters and hooks
+	 * Adds all of the filters and hooks and enforces singleton pattern
 	 */
 	function __construct() {
 
@@ -40,6 +40,12 @@ class WP_Error_Logger {
 		add_filter( 'get_search_query',                       array( $this, 'filter_search_query' ) );
 	}
 
+	/**
+	 * Exposes a method to allow developers to log an error.
+	 *
+	 * @param  WP_Error $error A WP_Error object containing an error code and error message
+	 * @return null|WP_Error Returns null on success or WP_Error object on failure
+	 */
 	static function add_error( $error ) {
 		if( ! is_wp_error( $error ) ) {
 			return wp_error( 'requires-wp-error', esc_html__( 'This method requires a WP_Error object as its parameter.', 'wordpress-error-logger' ) );
@@ -60,6 +66,12 @@ class WP_Error_Logger {
 		}
 	}
 
+	/**
+	 * Register the wp-logger post type.
+	 *
+	 * Registers the wp-logger post type such that only admins can see the errors in the admin
+	 * and admins can not add new errors through the admin UI interface.
+	 */
 	function init() {
 
 		register_post_type(
@@ -97,6 +109,17 @@ class WP_Error_Logger {
 
 	}
 
+	/**
+	 * Modifies the columns that show in the admin UI for the wp-logger CPT.
+	 *
+	 * @param  array $cols An array of column => label. 
+	 * @return array $args {
+	 *     @string string $cb Allows multiple checking of posts in WordPress admin UI.
+	 *     @string string $error_code Returns the Error Code label.
+	 *     @string string $error_msg Return the Error Message label.
+	 *     @string string $error_date Returns the Date label.
+	 * }
+	 */
 	function modify_cpt_columns( $cols ) {
 		
 		return array(
@@ -108,6 +131,12 @@ class WP_Error_Logger {
 
 	}
 
+	/**
+	 * Adds custom meta content to custom columns for wp-logger CPT.
+	 *
+	 * @param  string $column The name of the column to display.
+	 * @param  int $post_id The ID of the current post.
+	 */
 	function add_column_content( $column, $post_id ) {
 
 		if ( 'error_code' == $column ) {
@@ -125,6 +154,15 @@ class WP_Error_Logger {
 		}
 	}
 
+	/**
+	 * Allows custom columns for wp-logger CPT to be sorted.
+	 *
+	 * @return array $args {
+ 	 *     @string string $error_code
+ 	 *     @string string $error_msg
+ 	 *     @string string $error_date
+ 	 * }
+	 */
 	function add_sortable_columns() {
 
 		return array(
@@ -135,6 +173,15 @@ class WP_Error_Logger {
 
 	}
 
+	/**
+	 * Modifies the WP_Query object for wp-logger CPT for better search.
+	 *
+	 * Iff search parameter is set, query is in admin, and current post type is wp-logger,
+	 * this method will update the query to allow searching of custom meta fields instead of
+	 * post_title and post_content. Uses a LIKE comparison for somewhat search results.
+	 *
+	 * @param WP_Query $query The WP_Query instance (passed by reference).
+	 */
 	function filter_logger_admin_search( $query ) {
 
 		// Only filter the search on the admin side and for WordPress error log post types 
@@ -171,6 +218,16 @@ class WP_Error_Logger {
 		}
 	}
 
+	/**
+	 * Will update search header to use $_GET['s'] in order to correctly show search results header.
+	 *
+	 * Will update search header to use $_GET['s'] in order to correctly show search results header
+	 * because filter_logger_admin_search removes search paremter within query. Lack of the search
+	 * parameter in query causes the header to show `Search results for ""` with no search query.
+	 *
+	 * @param mixed $search Contents of the search query variable.
+	 * @return mixed $search Udpated contents of the search query variable.
+	 */
 	function filter_search_query( $search ) {
 		global $post;
 
