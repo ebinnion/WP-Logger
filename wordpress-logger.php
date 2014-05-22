@@ -29,18 +29,21 @@ class WP_Error_Logger {
 
 		self::$instance = $this;
 
-		add_action( 'init', array( $this, 'init' ) );
-		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
-		add_filter( 'manage_wp-logger_posts_columns', array( $this, 'modify_cpt_columns' ) );
-		add_action( 'manage_posts_custom_column', array( $this, 'add_column_content' ) , 10, 2 );
+		// Should there be spaces before each callback for better formatting?
+		// Lots of space in some of these, but definitely more readable.
+
+		add_action( 'init',                                   array( $this, 'init' ) );
+		add_action( 'add_meta_boxes',                         array( $this, 'add_meta_boxes' ) );
+		add_filter( 'manage_wp-logger_posts_columns',         array( $this, 'modify_cpt_columns' ) );
+		add_action( 'manage_posts_custom_column',             array( $this, 'add_column_content' ) , 10, 2 );
 		add_filter( 'manage_edit-wp-logger_sortable_columns', array( $this, 'add_sortable_columns' ) );
-		add_action( 'pre_get_posts', array( $this, 'filter_logger_admin_search' ) );
-		add_filter( 'get_search_query', array( $this, 'filter_search_query' ) );
+		add_action( 'pre_get_posts',                          array( $this, 'filter_logger_admin_search' ) );
+		add_filter( 'get_search_query',                       array( $this, 'filter_search_query' ) );
 	}
 
 	static function add_error( $error ) {
 		if( ! is_wp_error( $error ) ) {
-			return wp_error( 'requires-wp-error', 'This method requires a WP_Error object as its parameter.' );
+			return wp_error( 'requires-wp-error', esc_html__( 'This method requires a WP_Error object as its parameter.', 'wordpress-error-logger' ) );
 		}
 
 		$post_id = wp_insert_post(
@@ -50,7 +53,6 @@ class WP_Error_Logger {
 				'ping_status'    => 'closed',
 				'post_status'    => 'publish',
 			)
-
 		);
 
 		if( $post_id > 0 ) {
@@ -70,16 +72,16 @@ class WP_Error_Logger {
 				'menu_position' => 100,
 				'supports'      => false,
 				'labels'        => array(
-					'name'               => __( 'Errors', 'wordpress-error-logger' ),
-					'singular_name'      => __( 'Error', 'wordpress-error-logger' ),
-					'add_new'            => __( 'Add New Error', 'wordpress-error-logger' ),
-					'add_new_item'       => __( 'Add New Error', 'wordpress-error-logger' ),
-					'edit_item'          => __( 'Edit Error', 'wordpress-error-logger' ),
-					'new_item'           => __( 'Add New Error', 'wordpress-error-logger' ),
-					'view_item'          => __( 'View Error', 'wordpress-error-logger' ),
-					'search_items'       => __( 'Search Errors', 'wordpress-error-logger' ),
-					'not_found'          => __( 'No errors found', 'wordpress-error-logger' ),
-					'not_found_in_trash' => __( 'No errors found in trash', 'wordpress-error-logger' )
+					'name'               => esc_html__( 'Errors', 'wordpress-error-logger' ),
+					'singular_name'      => esc_html__( 'Error', 'wordpress-error-logger' ),
+					'add_new'            => esc_html__( 'Add New Error', 'wordpress-error-logger' ),
+					'add_new_item'       => esc_html__( 'Add New Error', 'wordpress-error-logger' ),
+					'edit_item'          => esc_html__( 'Edit Error', 'wordpress-error-logger' ),
+					'new_item'           => esc_html__( 'Add New Error', 'wordpress-error-logger' ),
+					'view_item'          => esc_html__( 'View Error', 'wordpress-error-logger' ),
+					'search_items'       => esc_html__( 'Search Errors', 'wordpress-error-logger' ),
+					'not_found'          => esc_html__( 'No errors found', 'wordpress-error-logger' ),
+					'not_found_in_trash' => esc_html__( 'No errors found in trash', 'wordpress-error-logger' )
 				),
 				'capabilities' => array(
 					'edit_post'          => 'update_core',
@@ -122,7 +124,7 @@ class WP_Error_Logger {
 				<tr>
 					<th scope="row">Error Code</th>
 					<td>
-						<input type="text" name="_wp_logger_code" value="<?php echo $error_code; ?>" class="regular-text">
+						<input type="text" name="_wp_logger_code" value="<?php echo esc_html( $error_code ); ?>" class="regular-text">
 					</td>
 				</tr>
 			</tbody>
@@ -135,9 +137,9 @@ class WP_Error_Logger {
 		
 		return array(
 			'cb'         => '<input type="checkbox" />',
-			'error_code' => __( 'Error Code', 'wordpress-error-logger' ),
-			'error_msg'  => __( 'Error Message', 'wordpress-error-logger' ),
-			'error_date' => __( 'Date', 'wordpress-error-logger' ),
+			'error_code' => esc_html__( 'Error Code', 'wordpress-error-logger' ),
+			'error_msg'  => esc_html__( 'Error Message', 'wordpress-error-logger' ),
+			'error_date' => esc_html__( 'Date', 'wordpress-error-logger' ),
 		);
 
 	}
@@ -145,13 +147,11 @@ class WP_Error_Logger {
 	function add_column_content( $column, $post_id ) {
 
 		if ( 'error_code' == $column ) {
-			$code = get_post_meta( $post_id, '_wp_logger_error_code', true );
-			echo $code;
+			echo get_post_meta( $post_id, '_wp_logger_error_code', true );
 		}
 
 		if ( 'error_msg' == $column ) {
-			$message = get_post_meta( $post_id, '_wp_logger_error_msg', true );
-			echo $message;
+			echo get_post_meta( $post_id, '_wp_logger_error_msg', true );
 		}
 
 		if( 'error_date' == $column ) {
@@ -173,7 +173,8 @@ class WP_Error_Logger {
 
 	function filter_logger_admin_search( $query ) {
 
-		if ( is_admin() && 'wp-logger' == $query->get('post_type') ) {
+		// Only filter the search on the admin side and for WordPress error log post types
+		if ( is_admin() && 'wp-logger' == $query->get( 'post_type' ) ) {
 
 			// Get the existing meta_query so we can update it
 			$meta_query = $query->get( 'meta_query' );
@@ -208,7 +209,7 @@ class WP_Error_Logger {
 	function filter_search_query( $search ) {
 		global $post;
 
-		if ( is_admin() && 'wp-logger' == $post->post_type && ! empty( $_GET['s']  ) ) {
+		if ( is_admin() && 'wp-logger' == $post->post_type && ! empty( $_GET['s'] ) ) {
 			return esc_html( urldecode( $_GET['s'] ) );
 		}
 
