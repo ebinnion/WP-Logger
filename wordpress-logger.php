@@ -173,8 +173,9 @@ class WP_Error_Logger {
 
 	function filter_logger_admin_search( $query ) {
 
-		// Only filter the search on the admin side and for WordPress error log post types
-		if ( is_admin() && 'wp-logger' == $query->get( 'post_type' ) ) {
+		// Only filter the search on the admin side and for WordPress error log post types 
+		// and only if search parameter is set
+		if ( is_admin() && 'wp-logger' == $query->get( 'post_type' ) && ! empty( $_GET['s'] ) ) {
 
 			// Get the existing meta_query so we can update it
 			$meta_query = $query->get( 'meta_query' );
