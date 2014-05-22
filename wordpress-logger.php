@@ -1,16 +1,16 @@
 <?php
 /**
- * Plugin Name: WordPress Error Logger
+ * Plugin Name: WP Logger
  * Plugin URI: http://automattic.com
  * Description: Provides an interface to log errors and actions within a WordPress installation.
  * Version: 0.1
  * Author: Eric Binnion
  * Author URI: http://manofhustle.com
  * License: GPLv2 or later
- * Text Domain: wordpress-error-logger
+ * Text Domain: wp-logger
  */
 
-class WP_Error_Logger {
+class WP_Logger {
 
 	/**
 	 * Memeber data for ensuring singleton pattern
@@ -24,7 +24,7 @@ class WP_Error_Logger {
 
 		// Enforces a single instance of this class.
 		if ( isset( self::$instance ) ) {
-			wp_die( esc_html__( 'The WP_Logger class has already been loaded.', 'wordpress-error-logger' ) );
+			wp_die( esc_html__( 'The WP_Logger class has already been loaded.', 'wp-logger' ) );
 		}
 
 		self::$instance = $this;
@@ -48,7 +48,7 @@ class WP_Error_Logger {
 	 */
 	static function add_error( $error ) {
 		if( ! is_wp_error( $error ) ) {
-			return wp_error( 'requires-wp-error', esc_html__( 'This method requires a WP_Error object as its parameter.', 'wordpress-error-logger' ) );
+			return wp_error( 'requires-wp-error', esc_html__( 'This method requires a WP_Error object as its parameter.', 'wp-logger' ) );
 		}
 
 		$post_id = wp_insert_post(
@@ -83,16 +83,16 @@ class WP_Error_Logger {
 				'menu_position' => 100,
 				'supports'      => false,
 				'labels'        => array(
-					'name'               => esc_html__( 'Errors', 'wordpress-error-logger' ),
-					'singular_name'      => esc_html__( 'Error', 'wordpress-error-logger' ),
-					'add_new'            => esc_html__( 'Add New Error', 'wordpress-error-logger' ),
-					'add_new_item'       => esc_html__( 'Add New Error', 'wordpress-error-logger' ),
-					'edit_item'          => esc_html__( 'Edit Error', 'wordpress-error-logger' ),
-					'new_item'           => esc_html__( 'Add New Error', 'wordpress-error-logger' ),
-					'view_item'          => esc_html__( 'View Error', 'wordpress-error-logger' ),
-					'search_items'       => esc_html__( 'Search Errors', 'wordpress-error-logger' ),
-					'not_found'          => esc_html__( 'No errors found', 'wordpress-error-logger' ),
-					'not_found_in_trash' => esc_html__( 'No errors found in trash', 'wordpress-error-logger' )
+					'name'               => esc_html__( 'Errors', 'wp-logger' ),
+					'singular_name'      => esc_html__( 'Error', 'wp-logger' ),
+					'add_new'            => esc_html__( 'Add New Error', 'wp-logger' ),
+					'add_new_item'       => esc_html__( 'Add New Error', 'wp-logger' ),
+					'edit_item'          => esc_html__( 'Edit Error', 'wp-logger' ),
+					'new_item'           => esc_html__( 'Add New Error', 'wp-logger' ),
+					'view_item'          => esc_html__( 'View Error', 'wp-logger' ),
+					'search_items'       => esc_html__( 'Search Errors', 'wp-logger' ),
+					'not_found'          => esc_html__( 'No errors found', 'wp-logger' ),
+					'not_found_in_trash' => esc_html__( 'No errors found in trash', 'wp-logger' )
 				),
 				'capabilities' => array(
 					'edit_post'          => 'update_core',
@@ -124,9 +124,9 @@ class WP_Error_Logger {
 		
 		return array(
 			'cb'         => '<input type="checkbox" />',
-			'error_code' => esc_html__( 'Error Code', 'wordpress-error-logger' ),
-			'error_msg'  => esc_html__( 'Error Message', 'wordpress-error-logger' ),
-			'error_date' => esc_html__( 'Date', 'wordpress-error-logger' ),
+			'error_code' => esc_html__( 'Error Code', 'wp-logger' ),
+			'error_msg'  => esc_html__( 'Error Message', 'wp-logger' ),
+			'error_date' => esc_html__( 'Date', 'wp-logger' ),
 		);
 
 	}
@@ -239,4 +239,4 @@ class WP_Error_Logger {
 	}
 }
 
-new WP_Error_Logger();
+new WP_Logger();
