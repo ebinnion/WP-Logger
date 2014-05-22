@@ -33,7 +33,6 @@ class WP_Error_Logger {
 		// Lots of space in some of these, but definitely more readable.
 
 		add_action( 'init',                                   array( $this, 'init' ) );
-		add_action( 'add_meta_boxes',                         array( $this, 'add_meta_boxes' ) );
 		add_filter( 'manage_wp-logger_posts_columns',         array( $this, 'modify_cpt_columns' ) );
 		add_action( 'manage_posts_custom_column',             array( $this, 'add_column_content' ) , 10, 2 );
 		add_filter( 'manage_edit-wp-logger_sortable_columns', array( $this, 'add_sortable_columns' ) );
@@ -96,41 +95,6 @@ class WP_Error_Logger {
 			)
 		);
 
-	}
-
-	function add_meta_boxes() {
-		add_meta_box( 'wp-logger', 'Logger Information', array( $this, 'wp_logger_metabox' ), 'wp-logger', 'normal', 'high' );
-	}
-
-	function wp_logger_metabox() {
-		global $post;
-
-		$meta       = get_post_meta( $post->ID );
-		$error_code = isset( $meta['_wp_logger_error_code'][0] ) ? $meta['_wp_logger_error_code'][0] : '';
-		$error      = isset( $meta['_wp_logger_error_msg'][0] ) ? $meta['_wp_logger_error_msg'][0] : null;
-
-		wp_nonce_field( 'verify-wp-logger-metabox', 'wp-logger-metabox' ); 
-
-		if( isset( $error ) ) {
-			echo '<pre>';
-			print_r( $error );
-			echo '</pre>';
-		}
-
-		?>
-
-		<table class="form-table">
-			<tbody>
-				<tr>
-					<th scope="row">Error Code</th>
-					<td>
-						<input type="text" name="_wp_logger_code" value="<?php echo esc_html( $error_code ); ?>" class="regular-text">
-					</td>
-				</tr>
-			</tbody>
-		</table>
-
-		<?php
 	}
 
 	function modify_cpt_columns( $cols ) {
