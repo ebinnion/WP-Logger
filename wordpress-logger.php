@@ -33,6 +33,7 @@ class WP_Error_Logger {
 		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
 		add_filter( 'manage_wp-logger_posts_columns', array( $this, 'modify_cpt_columns' ) );
 		add_action( 'manage_posts_custom_column', array( $this, 'add_column_content' ) , 10, 2 );
+		add_filter( 'manage_edit-wp-logger_sortable_columns', array( $this, 'add_sortable_columns' ) );
 	}
 
 	static function add_error( $error ) {
@@ -156,6 +157,16 @@ class WP_Error_Logger {
 			echo '<br>';
 			echo get_the_time( 'H:i:s', $post_id );
 		}
+	}
+
+	function add_sortable_columns() {
+
+		return array(
+			'error_code' => 'error_code',
+			'error_msg'  => 'error_msg',
+			'error_date' => 'error_date'
+		);
+		
 	}
 }
 
