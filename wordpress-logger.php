@@ -59,7 +59,13 @@ class WP_Logger {
 	static function register_plugin( $plugin_name ) {
 
 		if( ! term_exists( $plugin_name, 'plugin-errors' ) ) {
-			$registered = wp_insert_term( $plugin_name, 'plugin-errors' );
+			$registered = wp_insert_term( 
+				$plugin_name, 
+				'plugin-errors',
+				array(
+					'slug' => WP_Logger::prefix_slug( $plugin_name )
+				)
+			);
 
 			if( ! is_wp_error( $registered ) ) {
 				return true;
