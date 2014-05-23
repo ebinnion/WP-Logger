@@ -70,7 +70,7 @@ class WP_Logger {
 	 * Exposes method used to register taxonomy term with named with a plugin's slug
 	 *
 	 * @param  string $plugin_name Plugin slug.
-	 * @return bool/WP_Error True on successfully creating term, false if plugin is already registered, 
+	 * @return bool|WP_Error True on successfully creating term, false if plugin is already registered, 
 	 * and WP_Error if wp_insert_term fails
 	 */
 	static function register_plugin( $plugin_name ) {
@@ -97,7 +97,8 @@ class WP_Logger {
 	/**
 	 * Exposes a method to allow developers to log an error.
 	 *
-	 * @param  WP_Error $error A WP_Error object containing an error code and error message
+	 * @param  WP_Post|string $log WP_Post object if log already exists and a string if log needs to be created.
+	 * @param  string $plugin_name The plugin's slug
 	 * @return null|WP_Error Returns null on success or WP_Error object on failure
 	 */
 	static function add_entry( $log = 'message', $message, $plugin_name ) {
