@@ -249,6 +249,8 @@ class WP_Logger {
 	 * because filter_logger_admin_search removes search paremter within query. Lack of the search
 	 * parameter in query causes the header to show `Search results for ""` with no search query.
 	 *
+	 * @global WP_Post $post Contains the current $post within the loop.
+	 *
 	 * @param mixed $search Contents of the search query variable.
 	 * @return mixed $search Udpated contents of the search query variable.
 	 */
