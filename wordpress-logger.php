@@ -32,7 +32,7 @@ class WP_Logger {
 		// Should there be spaces before each callback for better formatting?
 		// Lots of space in some of these, but definitely more readable.
 
-		add_action( 'init',                                   array( $this, 'init' ) );
+		add_action( 'init',                                   array( $this, 'init' ), 1 );
 		add_filter( 'manage_wp-logger_posts_columns',         array( $this, 'modify_cpt_columns' ) );
 		add_action( 'manage_posts_custom_column',             array( $this, 'add_column_content' ) , 10, 2 );
 		add_filter( 'manage_edit-wp-logger_sortable_columns', array( $this, 'add_sortable_columns' ) );
