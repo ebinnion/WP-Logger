@@ -18,6 +18,16 @@ class WP_Logger {
 	private static $instance = null;
 
 	/**
+	 * Constant for the WP Logger taxonomy
+	 */
+	const TAXONOMY = 'plugin-errors';
+
+	/**
+	 * Constant for the WP Logger custom post type
+	 */
+	const CPT = 'wp-logger';
+
+	/**
 	 * Adds all of the filters and hooks and enforces singleton pattern
 	 */
 	function __construct() {
@@ -58,12 +68,12 @@ class WP_Logger {
 	 */
 	static function register_plugin( $plugin_name ) {
 
-		if( ! term_exists( $plugin_name, 'plugin-errors' ) ) {
+		if( ! term_exists( $plugin_name, self::TAXONOMY ) ) {
 			$registered = wp_insert_term( 
 				$plugin_name, 
-				'plugin-errors',
+				self::TAXONOMY,
 				array(
-					'slug' => WP_Logger::prefix_slug( $plugin_name )
+					'slug' => self::prefix_slug( $plugin_name )
 				)
 			);
 
@@ -110,7 +120,7 @@ class WP_Logger {
 	function init() {
 
 		register_post_type(
-			'wp-logger',
+			self::CPT,
 			array(
 				'public'        => false,
 				'show_ui'       => true,
@@ -157,8 +167,8 @@ class WP_Logger {
 		);
 
 		register_taxonomy( 
-			'plugin-errors', 
-			'wp-logger', 
+			self::TAXONOMY, 
+			self::CPT, 
 			array(
 				'labels'            => $labels,
 				'show_in_nav_menus' => true,
@@ -245,7 +255,7 @@ class WP_Logger {
 
 		// Only filter the search on the admin side and for WordPress error log post types 
 		// and only if search parameter is set
-		if ( is_admin() && 'wp-logger' == $query->get( 'post_type' ) && ! empty( $_GET['s'] ) ) {
+		if ( is_admin() && self::CPT == $query->get( 'post_type' ) && ! empty( $_GET['s'] ) ) {
 
 			// Get the existing meta_query so we can update it
 			$meta_query = $query->get( 'meta_query' );
@@ -292,7 +302,7 @@ class WP_Logger {
 	function filter_search_query( $search ) {
 		global $post;
 
-		if ( is_admin() && 'wp-logger' == $post->post_type && ! empty( $_GET['s'] ) ) {
+		if ( is_admin() && self::CPT == $post->post_type && ! empty( $_GET['s'] ) ) {
 			return esc_html( urldecode( $_GET['s'] ) );
 		}
 
