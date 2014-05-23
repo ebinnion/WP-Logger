@@ -100,23 +100,40 @@ class WP_Logger {
 	 * @param  WP_Error $error A WP_Error object containing an error code and error message
 	 * @return null|WP_Error Returns null on success or WP_Error object on failure
 	 */
-	static function add_entry( $error ) {
-		if( ! is_wp_error( $error ) ) {
-			return wp_error( 'requires-wp-error', esc_html__( 'This method requires a WP_Error object as its parameter.', 'wp-logger' ) );
+	static function add_entry( $log = 'message', $message, $plugin_name ) {
+
+		if ( ! isset( $message ) ) {
+			return new WP_Error( 'missing-parameter', esc_html__( 'You must pass a message as the second parameter.', 'wp-logger' ) );
 		}
 
-		$post_id = wp_insert_post(
-			array(
-				'post_type'      => 'wp-logger',
-				'comment_status' => 'closed',
-				'ping_status'    => 'closed',
-				'post_status'    => 'publish',
-			)
-		);
+		if( is_a( $log, 'WP_Post' ) ) {
+			$post_id = $log->ID;
+		} else {
+			$post_id = wp_insert_post(
+				array(
+					'post_title'     => $log,
+					'post_name'      => self::prefix_slug( $log, $plugin_name ),
+					'post_type'      => self::CPT,
+					'comment_status' => 'closed',
+					'ping_status'    => 'closed',
+					'post_status'    => 'publish',
+				)
+			);
 
-		if( $post_id > 0 ) {
-			add_post_meta( $post_id, '_wp_logger_error_code', $error->get_error_code() );
-			add_post_meta( $post_id, '_wp_logger_error_msg', $error->get_error_message() );
+			$add_terms = wp_set_post_terms( 
+				$post_id, 
+				self::prefix_slug( $plugin_name ), 
+				self::TAXONOMY 
+			);
+		}
+
+		if( intval( $post_id ) > 0 ) {
+			$msg = array(
+				'msg'  => $message,
+				'time' => time()
+			);
+
+			add_post_meta( $post_id, 'wp_logger_msg', $msg );
 		}
 	}
 
