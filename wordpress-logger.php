@@ -46,7 +46,7 @@ class WP_Logger {
 	 * @param  WP_Error $error A WP_Error object containing an error code and error message
 	 * @return null|WP_Error Returns null on success or WP_Error object on failure
 	 */
-	static function add_error( $error ) {
+	static function add_entry( $error ) {
 		if( ! is_wp_error( $error ) ) {
 			return wp_error( 'requires-wp-error', esc_html__( 'This method requires a WP_Error object as its parameter.', 'wp-logger' ) );
 		}
