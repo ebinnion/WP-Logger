@@ -51,13 +51,19 @@ class WP_Logger {
 	}
 
 	/**
-	 * Prefixes a string with 'wp-logger-'
+	 * Prefixes a string with 'wp-logger-' or $plugin_name
 	 *
 	 * @param  string $slug Plugin slug.
+	 * @param string $plugin_name If set, slug will be prefixed with plugin_name
 	 * @return string String that being with 'wp-logger-'
 	 */
-	private function prefix_slug( $slug ) {
-		return "wp-logger-$plugin_name";
+	static function prefix_slug( $slug, $plugin_name = '' ) {
+
+		if ( ! empty( $plugin_name ) ) {
+			return "$plugin_name-$slug";
+		} else {
+			return "wp-logger-$slug";
+		}
 	}
 
 	/**
