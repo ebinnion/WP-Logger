@@ -41,6 +41,16 @@ class WP_Logger {
 	}
 
 	/**
+	 * Prefixes a string with 'wp-logger-'
+	 *
+	 * @param  string $slug Plugin slug.
+	 * @return string String that being with 'wp-logger-'
+	 */
+	private function prefix_slug( $slug ) {
+		return "wp-logger-$plugin_name";
+	}
+
+	/**
 	 * Exposes method used to register taxonomy term with named with a plugin's slug
 	 *
 	 * @param  string $plugin_name Plugin slug.
