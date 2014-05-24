@@ -107,6 +107,8 @@ class WP_Logger {
 			return new WP_Error( 'missing-parameter', esc_html__( 'You must pass a message as the second parameter.', 'wp-logger' ) );
 		}
 
+		// If log is a WP_Post object, then the log already exists. Else, then the log needs to be created 
+		// before adding an entry.
 		if( is_a( $log, 'WP_Post' ) ) {
 			$post_id = $log->ID;
 		} else {
@@ -128,14 +130,23 @@ class WP_Logger {
 			);
 		}
 
-		if( intval( $post_id ) > 0 ) {
-			$msg = array(
-				'msg'  => $message,
-				'time' => time()
-			);
+		$time = current_time( 'mysql' );
 
-			add_post_meta( $post_id, 'wp_logger_msg', $msg );
-		}
+		$comment_data = array(
+			'comment_post_id'  => $post_id,
+			'comment_content'  => $message,
+			'comment_author'   => $plugin_name,
+			'comment_approved' => 'wp-logger'
+		);
+
+		$comment_id = wp_insert_comment( wp_filter_comment( $comment_data ) );
+
+		add_comment_meta(
+			$comment_id,
+			'_wp_logger_term',
+			self::prefix_slug( $plugin_name ),
+			true
+		);
 	}
 
 	/**
