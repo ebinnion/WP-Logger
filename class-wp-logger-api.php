@@ -18,7 +18,7 @@ class WP_Logger_API {
 	 */
 	private $logs;
 
-	function __construct( $log_name ) {
+	function __construct() {
 
 		add_action( 'init', array( $this, 'init' ), 2 );
 	}
