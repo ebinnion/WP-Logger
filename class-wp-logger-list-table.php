@@ -98,4 +98,11 @@ class WP_Logger_List_Table extends WP_List_Table {
     public function column_error_plugin( $item ) {
         return $item['error_plugin'];
     }
+
+	function get_bulk_actions() {
+		$actions = array(
+			'delete'    => 'Delete'
+		);
+		return $actions;
+	}
 }
