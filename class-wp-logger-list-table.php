@@ -71,7 +71,7 @@ class WP_Logger_List_Table extends WP_List_Table {
     				'id'           => $item->comment_ID,
     				'error_msg'    => $item->comment_content,
     				'error_date'   => $item->comment_date,
-    				'error_plugin' => str_replace( 'wp-logger-', '', get_comment_meta( $item->comment_ID, '_wp_logger_term', true ) )
+    				'error_plugin' => $item->comment_author
     			);
     		}
     	}
