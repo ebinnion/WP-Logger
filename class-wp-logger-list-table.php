@@ -58,7 +58,7 @@ class WP_Logger_List_Table extends WP_List_Table {
     public function get_sortable_columns() {
         return array(
         	'error_plugin' => array( 'error_plugin', false ),
-        	'error_date'   => array( 'error_date', true )
+        	'error_date'   => array( 'error_date', false )
         );
     }
 
