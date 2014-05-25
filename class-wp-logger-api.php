@@ -67,8 +67,6 @@ class WP_Logger_API {
 					$this->logs[ $post->post_name ] = $post;
 				}
 			}
-
-
 		}
 	}
 

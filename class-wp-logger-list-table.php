@@ -9,7 +9,8 @@ class WP_Logger_List_Table extends WP_List_Table {
 	function __construct( $items ) {
 		global $status, $page;
 
-		$this->items = $items;
+		$this->items = $items['entries'];
+		$this->total_items = $items['count'];
 
 		parent::__construct( 
 			array(
@@ -26,6 +27,13 @@ class WP_Logger_List_Table extends WP_List_Table {
         $sortable = $this->get_sortable_columns();
 
         $data = $this->table_data();
+
+        $this->set_pagination_args( 
+        	array(
+	            'total_items' => $this->total_items,                  //WE have to calculate the total number of items
+	            'per_page'    => 20                     //WE have to determine how many items to show on a page
+        	) 
+        );
 
         $this->_column_headers = array( $columns, $hidden, $sortable );
         $this->items = $data;
