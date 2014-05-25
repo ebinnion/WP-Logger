@@ -216,20 +216,110 @@ class WP_Logger {
 		add_menu_page( 'Errors', 'Errors', 'update_core', 'wp_logger_errors', array( $this, 'generate_menu_page' ), 'dashicons-editor-help', 100 );
 	}
 
+	function get_entries() {
+		$log_query = new WP_Comment_Query;
+
+		$args = array(
+			'status' => self::CPT,
+		);
+
+		if ( isset( $_GET['orderby'] ) ) {
+			if ( 'error_plugin' == $_GET['orderby'] ) {
+				$args['orderby'] = 'comment_author';
+			} else if ( 'error_date' == $_GET['orderby'] ) {
+				$args['orderby'] = 'comment_date';
+			}
+
+			if( isset( $_GET['order'] ) ) {
+				$args['order'] = $_GET['order'];
+			} else {
+				$args['order'] = 'desc';
+			}
+		}
+
+		if( ! empty( $_POST['search'] ) ) {
+			$args['search'] = $_POST['search'];
+		}
+
+		if( ! empty( $_POST['plugin-select'] ) ) {
+			$args['meta_query'][] = array(
+				'key'   => '_wp_logger_term',
+				'value' => $_POST['plugin-select']
+			);
+		}
+
+		$return = array();
+
+		// Get the count of all comments that fit these arguments
+		$args['count'] = true;
+		$return['count'] = $log_query->query( $args );
+
+		$args['count'] = false;
+		$args['number'] = 20;
+
+		if( isset( $_GET['paged'] ) && intval( $_GET['paged'] ) > 1 ) {
+			$args['offset'] = ( intval( $_GET['paged'] ) - 1 ) * 20;
+		}
+
+		// Only return the first 20 of the comments that fit these arguments
+		$return['entries'] = $log_query->query( $args );
+
+		return $return;
+	}
+
+	function get_logs( $plugin_term ) {
+		if( ! $plugin_term ) {
+			return false;
+		}
+
+		$logs = new WP_Query(
+			array(
+				'post_type' => self::CPT,
+				'tax_query' => array(
+					array(
+						'taxonomy' => self::TAXONOMY,
+						'field'    => 'slug',
+						'terms'    => $plugin_term
+					)
+				)
+			)
+		);
+
+		return $logs;
+	}
+
+	function get_plugin_email( $plugin_term ) {
+		$plugin_slug = str_replace( 'wp-logger-', '', $plugin_term );
+		return get_option( "{$plugin_slug}_email", false );
+	}
+
+	function get_plugins() {
+		$plugins = get_terms( 
+			self::TAXONOMY,
+			array(
+				'orderby' => 'name',
+				'order' => 'ASC'
+			)
+		);
+
+		return $plugins;
+	}
+
 	function generate_menu_page() {
+		global $post;
 
 		// Include WP Logger copy of core WP_List_Table class
 		require_once( trailingslashit( dirname( __FILE__ ) ) . 'class-wp-logger-list-table.php' );
 
-		$log_query = new WP_Comment_Query;
-		$logs = $log_query->query(
-			array(
-				'status' => self::CPT,
-				'number' => 20
-			)
-		);
+		$plugin_select = isset( $_POST['plugin-select'] ) ? $_POST['plugin-select'] : false;
+		$plugin_email = $this->get_plugin_email( $plugin_select );
+		$logs = $this->get_logs( $plugin_select );
 
-		$logger_table = new WP_Logger_List_Table( $logs );
+		$entries = $this->get_entries();
+
+		$plugins = $this->get_plugins();
+
+		$logger_table = new WP_Logger_List_Table( $entries );
 		$logger_table->prepare_items();
 
 		?>
@@ -237,14 +327,94 @@ class WP_Logger {
 		<div class="wrap">
 			<h2>Errors</h2>
 
-			<form method="post">
-				<input type="hidden" name="page" value="ttest_list_table">
-				<?php 
-					$logger_table->search_box( 'search', 'seach_id' );
+			<form method="post" action="<?php echo admin_url( 'admin.php?page=wp_logger_errors' ); ?>">
+				<div id="col-container">
+					<div id="col-right">
+						<div class="col-wrap">
+							<?php $logger_table->display(); ?>
+						</div>
+					</div>
 
-					$logger_table->display();
-				?>
+					<div id="col-left">
+						<h3>Generate Error Report</h3>
 
+						<div class="form-field">
+							<label for="search">Search</label>
+							<input name="search" id="search" type="text" value="<?php if( isset( $_POST['search'] ) ) { echo $_POST['search']; } ?>" size="40" aria-required="true">
+						</div>
+
+						<?php if ( ! empty( $plugins ) ) : ?>
+
+							<div class="form-field">
+								<p>
+									<label for="plugin-select">Plugin</label><br>
+									<select id="plugin-select" name="plugin-select">
+										<option value="">All Plugins</option>
+
+										<?php
+											foreach ( $plugins as $plugin ) {
+												echo "<option value='$plugin->slug'" . selected( $plugin->slug, $plugin_select ) . ">$plugin->name</option>";
+											}
+										?>
+									</select>
+									<br>
+									Select a plugin to view errors for.
+								</p>
+							</div>
+
+						<?php endif; ?>
+
+						<?php if ( false != $logs && $logs->have_posts() ): ?>
+
+							<div class="form-field">
+								<p>
+									<label for="log-select">Log</label><br>
+									<select id="log-select" name="log-select">
+										<option value="">All Logs</option>
+
+										<?php
+											while ( $logs->have_posts() ) {
+												$logs->the_post();
+												echo "<option value='$post->ID'" . selected( $post->ID, $log_id ) . ">$post->post_title</option>";
+											}
+										?>
+									</select>
+									<br>
+									Select a log for this plugin.
+								</p>
+							</div>
+
+						<?php endif; ?>
+
+						<button class="button button-primary">Generate Report</button>
+						
+						<?php if( $plugin_select && $plugin_email ) :?>
+							<br>
+							<br>
+							<hr>
+
+							<h3>Send Report to Developer</h3>
+							<p>By clicking this button below, you can send the logs for this plugin directly to the developer.</p>
+							<a class="button">Send Report to Developer</a>
+						<?php endif; ?>
+
+						<br>
+						<br>
+						<hr>
+
+						<h3>Email Results</h3>
+
+						<div class="form-field">
+							<label for="email-results">Email</label>
+							<input name="s" id="email-results" type="text" size="40" aria-required="true">
+							<p>Enter an email above to email a log.</p>
+						</div>
+
+						<p><a class="button">Email Results</a></p>
+
+					</div>
+
+				</div>
 			</form>
 		</div>
 
