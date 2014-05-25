@@ -126,10 +126,13 @@ class WP_Logger {
 		$time = current_time( 'mysql' );
 
 		$comment_data = array(
-			'comment_post_id'  => $post_id,
-			'comment_content'  => $message,
-			'comment_author'   => $plugin_name,
-			'comment_approved' => 'wp-logger'
+			'comment_post_id'      => $post_id,
+			'comment_content'      => $message,
+			'comment_author'       => $plugin_name,
+			'comment_approved'     => 'wp-logger',
+			'comment_author_IP'    => '',
+			'comment_author_url'   => '',
+			'comment_author_email' => '',
 		);
 
 		$comment_id = wp_insert_comment( wp_filter_comment( $comment_data ) );
