@@ -72,6 +72,13 @@ class WP_Logger_API {
 		}
 	}
 
+	function register_plugin_email( $email ) {
+		$plugin_slug = preg_replace( '#(^[^\/]+).*#', '$1', plugin_basename( __FILE__ ) );
+		$key = $plugin_slug . '_email';
+		
+		update_option( $key, sanitize_email( $email ) );
+	}
+
 	function build_slug( $string ) {
 		return 'wp-' . sanitize_title( $string );
 	}
