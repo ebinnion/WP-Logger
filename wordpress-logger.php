@@ -39,15 +39,8 @@ class WP_Logger {
 
 		self::$instance = $this;
 
-		// Should there be spaces before each callback for better formatting?
-		// Lots of space in some of these, but definitely more readable.
-
-		add_action( 'init',                                   array( $this, 'init' ), 1 );
-		add_filter( 'manage_wp-logger_posts_columns',         array( $this, 'modify_cpt_columns' ) );
-		add_action( 'manage_posts_custom_column',             array( $this, 'add_column_content' ) , 10, 2 );
-		add_filter( 'manage_edit-wp-logger_sortable_columns', array( $this, 'add_sortable_columns' ) );
-		add_action( 'pre_get_posts',                          array( $this, 'filter_logger_admin_search' ) );
-		add_filter( 'get_search_query',                       array( $this, 'filter_search_query' ) );
+		add_action( 'init',       array( $this, 'init' ), 1 );
+		add_action( 'admin_menu', array( $this,'add_menu_page' ) );
 	}
 
 	/**
@@ -161,7 +154,7 @@ class WP_Logger {
 			self::CPT,
 			array(
 				'public'        => false,
-				'show_ui'       => true,
+				'show_ui'       => false,
 				'rewrite'       => false,
 				'menu_position' => 100,
 				'supports'      => false,
@@ -216,135 +209,43 @@ class WP_Logger {
 		);
 	}
 
-	/**
-	 * Modifies the columns that show in the admin UI for the wp-logger CPT.
-	 *
-	 * @param  array $cols An array of column => label. 
-	 * @return array $args {
-	 *     @string string $cb Allows multiple checking of posts in WordPress admin UI.
-	 *     @string string $error_code Returns the Error Code label.
-	 *     @string string $error_msg Return the Error Message label.
-	 *     @string string $error_date Returns the Date label.
-	 * }
-	 */
-	function modify_cpt_columns( $cols ) {
-		
-		return array(
-			'cb'         => '<input type="checkbox" />',
-			'error_code' => esc_html__( 'Error Code', 'wp-logger' ),
-			'error_msg'  => esc_html__( 'Error Message', 'wp-logger' ),
-			'error_date' => esc_html__( 'Date', 'wp-logger' ),
+	function add_menu_page() {
+		add_menu_page( 'Errors', 'Errors', 'update_core', 'wp_logger_errors', array( $this, 'generate_menu_page' ), 'dashicons-editor-help', 100 );
+	}
+
+	function generate_menu_page() {
+
+		// Include WP Logger copy of core WP_List_Table class
+		require_once( trailingslashit( dirname( __FILE__ ) ) . 'class-wp-logger-list-table.php' );
+
+		$log_query = new WP_Comment_Query;
+		$logs = $log_query->query(
+			array(
+				'status' => self::CPT,
+				'number' => 20
+			)
 		);
 
-	}
+		$logger_table = new WP_Logger_List_Table( $logs );
+		$logger_table->prepare_items();
 
-	/**
-	 * Adds custom meta content to custom columns for wp-logger CPT.
-	 *
-	 * @param  string $column The name of the column to display.
-	 * @param  int $post_id The ID of the current post.
-	 */
-	function add_column_content( $column, $post_id ) {
+		?>
 
-		if ( 'error_code' == $column ) {
-			echo get_post_meta( $post_id, '_wp_logger_error_code', true );
-		}
+		<div class="wrap">
+			<h2>Errors</h2>
 
-		if ( 'error_msg' == $column ) {
-			echo get_post_meta( $post_id, '_wp_logger_error_msg', true );
-		}
+			<form method="post">
+				<input type="hidden" name="page" value="ttest_list_table">
+				<?php 
+					$logger_table->search_box( 'search', 'seach_id' );
 
-		if( 'error_date' == $column ) {
-			echo get_the_time( 'Y/m/d', $post_id );
-			echo '<br>';
-			echo get_the_time( 'H:i:s', $post_id );
-		}
-	}
+					$logger_table->display();
+				?>
 
-	/**
-	 * Allows custom columns for wp-logger CPT to be sorted.
-	 *
-	 * @return array $args {
- 	 *     @string string $error_code
- 	 *     @string string $error_msg
- 	 *     @string string $error_date
- 	 * }
-	 */
-	function add_sortable_columns() {
+			</form>
+		</div>
 
-		return array(
-			'error_code' => 'error_code',
-			'error_msg'  => 'error_msg',
-			'error_date' => 'error_date'
-		);
-
-	}
-
-	/**
-	 * Modifies the WP_Query object for wp-logger CPT for better search.
-	 *
-	 * Iff search parameter is set, query is in admin, and current post type is wp-logger,
-	 * this method will update the query to allow searching of custom meta fields instead of
-	 * post_title and post_content. Uses a LIKE comparison for somewhat search results.
-	 *
-	 * @param WP_Query $query The WP_Query instance (passed by reference).
-	 */
-	function filter_logger_admin_search( $query ) {
-
-		// Only filter the search on the admin side and for WordPress error log post types 
-		// and only if search parameter is set
-		if ( is_admin() && self::CPT == $query->get( 'post_type' ) && ! empty( $_GET['s'] ) ) {
-
-			// Get the existing meta_query so we can update it
-			$meta_query = $query->get( 'meta_query' );
-
-			// Get the search parameter
-			$search = $query->get( 's' );
-
-			// Any meta key added here will be added to search
-			$meta_keys = array( '_wp_logger_error_msg', '_wp_logger_error_code' );
-
-			foreach ( $meta_keys as $meta_key ) {
-				$meta_query[] = array(
-					'key'     => $meta_key,
-					'compare' => 'LIKE',
-					'value'   => $search
-				);
-			}
-
-			// OR the different meta_queries 
-			$meta_query['relation'] = 'OR';
-
-			// Update the query to include 
-			$query->set( 'meta_query', $meta_query );
-
-			// Remove default search query parameters
-			$query->set( 's', '' );
-			$query->set( 'post_title', '' );
-			$query->set( 'post_content', '' );
-		}
-	}
-
-	/**
-	 * Will update search header to use $_GET['s'] in order to correctly show search results header.
-	 *
-	 * Will update search header to use $_GET['s'] in order to correctly show search results header
-	 * because filter_logger_admin_search removes search paremter within query. Lack of the search
-	 * parameter in query causes the header to show `Search results for ""` with no search query.
-	 *
-	 * @global WP_Post $post Contains the current WP_Post object within the loop.
-	 *
-	 * @param mixed $search Contents of the search query variable.
-	 * @return mixed $search Udpated contents of the search query variable.
-	 */
-	function filter_search_query( $search ) {
-		global $post;
-
-		if ( is_admin() && self::CPT == $post->post_type && ! empty( $_GET['s'] ) ) {
-			return esc_html( urldecode( $_GET['s'] ) );
-		}
-
-		return $search;
+		<?php
 	}
 }
 
