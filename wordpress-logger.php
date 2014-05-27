@@ -39,8 +39,9 @@ class WP_Logger {
 
 		self::$instance = $this;
 
-		add_action( 'init',       array( $this, 'init' ), 1 );
-		add_action( 'admin_menu', array( $this,'add_menu_page' ) );
+		add_action( 'init',             array( $this, 'init' ), 1 );
+		add_action( 'admin_menu',       array( $this,'add_menu_page' ) );
+		add_filter( 'comments_clauses', array( $this, 'add_comment_author' ), 10, 2 );
 	}
 
 	/**
@@ -216,6 +217,25 @@ class WP_Logger {
 	 */
 	function add_menu_page() {
 		add_menu_page( 'Errors', 'Errors', 'update_core', 'wp_logger_errors', array( $this, 'generate_menu_page' ), 'dashicons-editor-help', 100 );
+	}
+
+	/**
+	 * Adds the ability to query by comment author using the WP_Comment_Query class.
+	 *
+	 * @global wpdb $wpdb Global insantiation of WordPress database class wpdb.
+	 *
+	 * @param array $pieces Array containing the comment query arguments.
+	 * @param WP_Comment_Quey &Comment Reference to the WP_Comment_Query object.
+	 * @return array Containing the comment query arguments.
+	 */
+	function add_comment_author( $pieces, &$comment ) {
+		global $wpdb;
+
+		if( isset( $comment->query_vars['comment_author'] ) ) {
+			$pieces['where'] .= $wpdb->prepare( ' AND comment_author = %s', $comment->query_vars['comment_author'] );
+		}
+
+		return $pieces;
 	}
 
 	/**
