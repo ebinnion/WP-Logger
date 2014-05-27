@@ -1,5 +1,11 @@
 <?php
 /**
+ * This is a copy of the WP_List_Table class in WordPress core. This class is copied as a fallback
+ * in case WP_List_Table is no longer included in core in the future.
+ *
+ */
+
+/**
  * Base class for displaying a list of items in an ajaxified HTML table.
  *
  * @package WordPress
