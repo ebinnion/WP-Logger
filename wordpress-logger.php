@@ -54,9 +54,9 @@ class WP_Logger {
 	static function prefix_slug( $slug, $plugin_name = '' ) {
 
 		if ( ! empty( $plugin_name ) ) {
-			return "$plugin_name-$slug";
+			return sanitize_title( $plugin_name ) . '-' . sanitize_title( $slug );
 		} else {
-			return "wp-logger-$slug";
+			return 'wp-' . sanitize_title( $slug );
 		}
 	}
 
