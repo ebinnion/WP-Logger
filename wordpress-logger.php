@@ -264,7 +264,7 @@ class WP_Logger {
 	/**
 	 * Returns an array of logger messages (comments) and the count of those entries.
 	 *
-	* @return array $args {
+	 * @return array $args {
 	 *     int $count The number of entries that fit the paraemters.
 	 *     array $entries An array of comment comment rows.
 	 * }
