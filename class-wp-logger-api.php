@@ -1,4 +1,15 @@
 <?php
+/**
+ * This file is a library to be included with WordPress plugins.
+ *
+ * This class handles provides a simple interface that plugin developers can use
+ * to connect to the WP_Logger class. All public APIs of this class will check to 
+ * make sure that the WP Logger plugin is installed before making API calls. If
+ * plugin developers want to simplify the process of users reporting bugs to the
+ * developer, the developer should call `register_plugin_email()` on plugin activation.
+ * 
+ * @since unknown
+ */
 
 class WP_Logger_API {
 
@@ -6,7 +17,6 @@ class WP_Logger_API {
 	 * Static variable to store whether WP Logger plugin is installed.
 	 */
 	public static $wp_logger_exists = false;
-
 
 	/**
 	 * Member data that is the plugin slug. Derived from plugin_basename().
