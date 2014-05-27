@@ -481,4 +481,4 @@ class WP_Logger {
 	}
 }
 
-new WP_Logger();
+$wp_logger = new WP_Logger();
