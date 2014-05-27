@@ -241,11 +241,9 @@ class WP_Logger {
 			$args['search'] = $_POST['search'];
 		}
 
-		if( ! empty( $_POST['plugin-select'] ) ) {
-			$args['meta_query'][] = array(
-				'key'   => '_wp_logger_term',
-				'value' => $_POST['plugin-select']
-			);
+		if ( ! empty( $_POST['plugin-select'] ) ) {
+			$args['comment_author'] = $_POST['plugin-select'];
+		}
 		}
 
 		$return = array();
@@ -279,7 +277,7 @@ class WP_Logger {
 					array(
 						'taxonomy' => self::TAXONOMY,
 						'field'    => 'slug',
-						'terms'    => $plugin_term
+						'terms'    => self::prefix_slug( $plugin_term )
 					)
 				)
 			)
@@ -353,7 +351,7 @@ class WP_Logger {
 
 										<?php
 											foreach ( $plugins as $plugin ) {
-												echo "<option value='$plugin->slug'" . selected( $plugin->slug, $plugin_select ) . ">$plugin->name</option>";
+												echo "<option value='$plugin->name'" . selected( $plugin->name, $plugin_select ) . ">$plugin->name</option>";
 											}
 										?>
 									</select>
