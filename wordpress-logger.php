@@ -61,28 +61,15 @@ class WP_Logger {
 	}
 
 	/**
-	 * Exposes method used to register taxonomy term with named with a plugin's slug
+	 * Exposes method used to register a developer's email for sending logs.
 	 *
 	 * @param  string $plugin_name Plugin slug.
-	 * @return bool|WP_Error True on successfully creating term, false if plugin is already registered, 
-	 * and WP_Error if wp_insert_term fails
+	 * @param string $email The developer's email address.
+	 * @return bool Returns true on success, false if $email is empty or if update/add fails.
 	 */
-	static function register_plugin( $plugin_name ) {
-
-		if( ! term_exists( $plugin_name, self::TAXONOMY ) ) {
-			$registered = wp_insert_term( 
-				$plugin_name, 
-				self::TAXONOMY,
-				array(
-					'slug' => self::prefix_slug( $plugin_name )
-				)
-			);
-
-			if( is_wp_error( $registered ) ) {
-				return $registered;
-			} else {
-				return true;
-			}
+	function register_plugin_email( $plugin_name, $email = '' ) {
+		if ( ! empty( $email ) ) {
+			 return update_option( $plugin_name . '_email', sanitize_email( $email ) );
 		}
 
 		return false;
