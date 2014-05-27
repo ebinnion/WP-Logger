@@ -244,6 +244,9 @@ class WP_Logger {
 		if ( ! empty( $_POST['plugin-select'] ) ) {
 			$args['comment_author'] = $_POST['plugin-select'];
 		}
+
+		if ( isset( $_POST['log-select'] ) ) {
+			$args['post_id'] = $_POST['log-select'];
 		}
 
 		$return = array();
