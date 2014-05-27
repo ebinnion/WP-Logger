@@ -146,10 +146,8 @@ class WP_Logger {
 	}
 
 	/**
-	 * Register the wp-logger post type.
+	 * Register the wp-logger post type and plugin-errors taxonomy.
 	 *
-	 * Registers the wp-logger post type such that only admins can see the errors in the admin
-	 * and admins can not add new errors through the admin UI interface.
 	 */
 	function init() {
 
@@ -212,10 +210,22 @@ class WP_Logger {
 		);
 	}
 
+	/**
+	 * Adds a menu page to the WordPress admin with a title of Errors
+	 *
+	 */
 	function add_menu_page() {
 		add_menu_page( 'Errors', 'Errors', 'update_core', 'wp_logger_errors', array( $this, 'generate_menu_page' ), 'dashicons-editor-help', 100 );
 	}
 
+	/**
+	 * Returns an array of logger messages (comments) and the count of those entries.
+	 *
+	* @return array $args {
+	 *     int $count The number of entries that fit the paraemters.
+	 *     array $entries An array of comment comment rows.
+	 * }
+	 */
 	function get_entries() {
 		$log_query = new WP_Comment_Query;
 
@@ -237,7 +247,7 @@ class WP_Logger {
 			}
 		}
 
-		if( ! empty( $_POST['search'] ) ) {
+		if ( ! empty( $_POST['search'] ) ) {
 			$args['search'] = $_POST['search'];
 		}
 
@@ -249,15 +259,18 @@ class WP_Logger {
 			$args['post_id'] = $_POST['log-select'];
 		}
 
+		// Initialize an array to return the entries and count.
 		$return = array();
 
-		// Get the count of all comments that fit these arguments
+		// Get the count of all comments that fit these arguments.
 		$args['count'] = true;
 		$return['count'] = $log_query->query( $args );
 
+		// Get up to 20 of entries that match parameters.
 		$args['count'] = false;
 		$args['number'] = 20;
 
+		// Update the offset value based on what page query is running on.
 		if( isset( $_GET['paged'] ) && intval( $_GET['paged'] ) > 1 ) {
 			$args['offset'] = ( intval( $_GET['paged'] ) - 1 ) * 20;
 		}
@@ -268,6 +281,13 @@ class WP_Logger {
 		return $return;
 	}
 
+	/**
+	 * Return the posts (logs) for the posts with $plugin_term term
+	 *
+	 * @param  string $plugin_term The term that for the current plugin.
+	 * @return false|WP_Query False if no $plugin_term is passed or WP_Query object
+	 * containing the posts for this plugin.
+	 */
 	function get_logs( $plugin_term ) {
 		if( ! $plugin_term ) {
 			return false;
@@ -289,11 +309,22 @@ class WP_Logger {
 		return $logs;
 	}
 
+	/**
+	 * Will retrieve the developer email for the current plugin
+	 *
+	 * @param  string $plugin_term The unique string identifying this plugin. Also acts as term for plugin.
+	 * @return string|bool The developers email or false if no email found.
+	 */
 	function get_plugin_email( $plugin_term ) {
 		$plugin_slug = str_replace( 'wp-logger-', '', $plugin_term );
 		return get_option( "{$plugin_slug}_email", false );
 	}
 
+	/**
+	 * Retrieves the terms (plugins) for the plugin-errors taxonomy.
+	 *
+	 * @return array. An array of term objects.
+	 */
 	function get_plugins() {
 		$plugins = get_terms( 
 			self::TAXONOMY,
@@ -306,6 +337,12 @@ class WP_Logger {
 		return $plugins;
 	}
 
+	/**
+	 * Outputs the errors menu page.
+	 *
+	 * @global WP_Post $post The global WP_Post object.
+	 *
+	 */
 	function generate_menu_page() {
 		global $post;
 
