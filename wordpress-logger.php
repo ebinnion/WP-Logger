@@ -126,7 +126,7 @@ class WP_Logger {
 		$time = current_time( 'mysql' );
 
 		$comment_data = array(
-			'comment_post_id'      => $post_id,
+			'comment_post_ID'      => $post_id,
 			'comment_content'      => $message,
 			'comment_author'       => $plugin_name,
 			'comment_approved'     => 'wp-logger',
