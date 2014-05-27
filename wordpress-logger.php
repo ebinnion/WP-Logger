@@ -312,6 +312,7 @@ class WP_Logger {
 		$plugin_select = isset( $_POST['plugin-select'] ) ? $_POST['plugin-select'] : false;
 		$plugin_email = $this->get_plugin_email( $plugin_select );
 		$logs = $this->get_logs( $plugin_select );
+		$log_id = isset( $_POST['log-select'] ) ? $_POST['log-select'] : false;
 
 		$entries = $this->get_entries();
 
