@@ -78,20 +78,52 @@ class WP_Logger {
 	/**
 	 * Exposes a method to allow developers to log an error.
 	 *
+	 * @global WP_Post $post The global WP_Post object.
+	 *
 	 * @param  WP_Post|string $log WP_Post object if log already exists and a string if log needs to be created.
-	 * @param  string $plugin_name The plugin's slug
-	 * @return null|WP_Error Returns null on success or WP_Error object on failure
+	 * @param  string $plugin_name The plugin's slug.
+	 * @return bool Returns true if entry was successfully added and false if entry failed.
 	 */
-	static function add_entry( $log = 'message', $message, $plugin_name ) {
+	function add_entry( $plugin_name, $log = 'message', $message ) {
+		global $post;
 
-		if ( ! isset( $message ) ) {
-			return new WP_Error( 'missing-parameter', esc_html__( 'You must pass a message as the second parameter.', 'wp-logger' ) );
+		$prefixed_term = self::prefix_slug( $plugin_name );
+
+		if( ! term_exists( $prefixed_term, self::TAXONOMY ) ) {
+
+			// Create a taxonomy term that distinguishes current plugin from others.
+			$registered = wp_insert_term( 
+				$plugin_name, 
+				self::TAXONOMY,
+				array(
+					'slug' => $prefixed_term
+				)
+			);
+
+			// Check if taxonomy term was succeessfully added and return if not.
+			if( is_wp_error( $registered ) ) {
+				return false;
+			}
 		}
 
-		// If log is a WP_Post object, then the log already exists. Else, then the log needs to be created 
-		// before adding an entry.
-		if( is_a( $log, 'WP_Post' ) ) {
-			$post_id = $log->ID;
+		$log_exists = new WP_Query(
+			array(
+				'post_type' => self::CPT,
+				'post_name' => self::prefix_slug( $log, $plugin_name ),
+				'tax_query' => array(
+					array(
+						'taxonomy' => self::TAXONOMY,
+						'field'    => 'slug',
+						'terms'    => self::prefix_slug( $plugin_name )
+					)
+				)
+			)
+		);
+
+		if( $log_exists->have_posts() ) {
+			$log_exists->the_post();
+			$post_id = $post->ID;
+
 		} else {
 			$post_id = wp_insert_post(
 				array(
@@ -104,14 +136,22 @@ class WP_Logger {
 				)
 			);
 
+			if( 0 == $post_id ) {
+				return false;
+			}
+
 			$add_terms = wp_set_post_terms( 
 				$post_id, 
 				self::prefix_slug( $plugin_name ), 
 				self::TAXONOMY 
 			);
-		}
 
-		$time = current_time( 'mysql' );
+			// A successful call to wp_set_post_terms will return an array. A failure could return
+			// a WP_Error object, false, or a string.
+			if( is_wp_error( $add_terms ) || false == $add_terms || ! is_array( $add_terms ) ) {
+				return false;
+			}
+		}
 
 		$comment_data = array(
 			'comment_post_ID'      => $post_id,
@@ -125,12 +165,8 @@ class WP_Logger {
 
 		$comment_id = wp_insert_comment( wp_filter_comment( $comment_data ) );
 
-		add_comment_meta(
-			$comment_id,
-			'_wp_logger_term',
-			self::prefix_slug( $plugin_name ),
-			true
-		);
+		// Returns true if comment/entry was successfully added and false on falure.
+		return (boolean) $comment_id;
 	}
 
 	/**
