@@ -39,7 +39,7 @@ class WP_Logger {
 
 		self::$instance = $this;
 
-		add_action( 'init',             array( $this, 'init' ), 1 );
+		add_action( 'init',             array( $this, 'init' ) );
 		add_action( 'admin_menu',       array( $this,'add_menu_page' ) );
 		add_filter( 'comments_clauses', array( $this, 'add_comment_author' ), 10, 2 );
 	}
@@ -232,6 +232,16 @@ class WP_Logger {
 				'query_var'         => true,
 			)
 		);
+
+		// Delete any error entries that were checked through the bulk action interface.
+		if( is_admin() && isset( $_GET['page'] ) && 'wp_logger_errors' == $_GET['page'] && isset( $_POST['action'] ) && 'delete' == $_POST['action'] ) {
+			if( ! empty( $_POST['logs'] ) ) {
+
+				foreach( $_POST['logs'] as $log ) {
+					wp_delete_comment( intval( $log ), true );
+				}
+			}
+		}
 	}
 
 	/**
