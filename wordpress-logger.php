@@ -390,7 +390,7 @@ class WP_Logger {
 		global $post;
 
 		// Include WP Logger copy of core WP_List_Table class
-		require_once( trailingslashit( dirname( __FILE__ ) ) . 'class-wp-logger-list-table.php' );
+		require_once( trailingslashit( dirname( __FILE__ ) ) . 'lib/class-wp-logger-list-table.php' );
 
 		$plugin_select = isset( $_POST['plugin-select'] ) ? $_POST['plugin-select'] : false;
 		$plugin_email = $this->get_plugin_email( $plugin_select );
