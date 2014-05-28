@@ -79,10 +79,10 @@ class WP_Logger {
 	 * Will retrieve the developer email for the current plugin
 	 *
 	 * @param  string $plugin_name The unique string identifying this plugin. Also acts as term for plugin.
-	 * @return string|bool The developers email or false if no email found.
+	 * @return string|The developers email or empty string.
 	 */
 	function get_plugin_email( $plugin_name ) {
-		return get_option( $plugin_name . '_email', false );
+		return get_option( $plugin_name . '_email', '' );
 	}
 
 	/**
