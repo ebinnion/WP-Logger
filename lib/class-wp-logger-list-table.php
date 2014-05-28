@@ -80,7 +80,7 @@ class WP_Logger_List_Table extends WP_List_Table {
     }
 
     public function column_cb( $item ) {
-    	return sprintf( '<input type="checkbox" name="book[]" value="%s" />', $item['id'] );
+    	return sprintf( '<input type="checkbox" name="logs[]" value="%s" />', $item['id'] );
     }
 
     public function column_id( $item ) {
