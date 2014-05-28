@@ -40,7 +40,8 @@ class WP_Logger {
 		self::$instance = $this;
 
 		add_action( 'init',             array( $this, 'init' ), 1 );
-		add_action( 'admin_menu',       array( $this,'add_menu_page' ) );
+		add_action( 'admin_menu',       array( $this, 'add_menu_page' ) );
+		add_action( 'admin_footer',     array( $this, 'admin_footer' ) );
 		add_filter( 'comments_clauses', array( $this, 'add_comment_author' ), 10, 2 );
 	}
 
@@ -181,7 +182,6 @@ class WP_Logger {
 
 	/**
 	 * Register the wp-logger post type and plugin-errors taxonomy.
-	 *
 	 */
 	function init() {
 
@@ -245,6 +245,8 @@ class WP_Logger {
 
 		// Delete any error entries that were checked through the bulk action interface.
 		if( is_admin() && isset( $_GET['page'] ) && 'wp_logger_errors' == $_GET['page'] && isset( $_POST['action'] ) && 'delete' == $_POST['action'] ) {
+			check_admin_referer( 'wp_logger_generate_report', 'wp_logger_form_nonce' );
+
 			if( ! empty( $_POST['logs'] ) ) {
 
 				foreach( $_POST['logs'] as $log ) {
@@ -252,6 +254,30 @@ class WP_Logger {
 				}
 			}
 		}
+
+		// Condition for emailing logs. Logs are emailed as a JSON object.
+		if( isset( $_POST['send_logger_email'] ) ) {
+			check_admin_referer( 'wp_logger_generate_report', 'wp_logger_form_nonce' );
+
+			$entries = $this->get_entries();
+
+			$data = array();
+			foreach( $entries['entries'] as $entry ){
+				$data[] = array(
+					'id'           => $entry->comment_ID,
+					'error_msg'    => $entry->comment_content,
+					'error_date'   => $entry->comment_date,
+					'error_plugin' => $entry->comment_author
+				);
+			}
+
+			$plugin_email = $_POST['email-logs'];
+			$current_site = get_option( 'home' );
+			$headers      = 'From: WP Logger Logs' . "\r\n";
+
+			$_POST['message_sent'] = wp_mail( $plugin_email, "Logs from {$current_site}", json_encode( $data ), $headers );
+		}
+
 	}
 
 	/**
@@ -329,15 +355,21 @@ class WP_Logger {
 		$args['count'] = true;
 		$return['count'] = $log_query->query( $args );
 
-		// Get up to 20 of entries that match parameters.
+		
 		$args['count'] = false;
-		$args['number'] = 20;
 
-		// Update the offset value based on what page query is running on.
-		if( isset( $_GET['paged'] ) && intval( $_GET['paged'] ) > 1 ) {
-			$args['offset'] = ( intval( $_GET['paged'] ) - 1 ) * 20;
+		// If sending an email of logs, then return as many entries as possible.
+		if( ! isset( $_POST['send_logger_email'] ) ) {
+
+			// Get up to 20 of entries that match parameters.
+			$args['number'] = 20;
+
+			// Update the offset value based on what page query is running on.
+			if( isset( $_GET['paged'] ) && intval( $_GET['paged'] ) > 1 ) {
+				$args['offset'] = ( intval( $_GET['paged'] ) - 1 ) * 20;
+			}
 		}
-
+		
 		// Only return the first 20 of the comments that fit these arguments
 		$return['entries'] = $log_query->query( $args );
 
@@ -390,6 +422,28 @@ class WP_Logger {
 	}
 
 	/**
+	 * Adds a hidden input field to the wp_logger_errors page and then submits the form. The hiddne field
+	 * acts as a flag to send logs to an email.
+	 */
+	function admin_footer() {
+		if( isset( $_GET['page'] ) && 'wp_logger_errors' == $_GET['page'] ) {
+			?>
+
+			<script>
+				jQuery( document ).ready( function( $ ){
+					$( '#send-logger-email' ).click( function(){
+						var form = $( '#logger-form' );
+						form.prepend( '<input type="hidden" name="send_logger_email" value="1" >' );
+						form.submit();
+					});
+				});
+			</script>
+
+			<?php
+		}
+	}
+
+	/**
 	 * Outputs the errors menu page.
 	 *
 	 * @global WP_Post $post The global WP_Post object.
@@ -402,7 +456,6 @@ class WP_Logger {
 		require_once( trailingslashit( dirname( __FILE__ ) ) . 'lib/class-wp-logger-list-table.php' );
 
 		$plugin_select = isset( $_POST['plugin-select'] ) ? $_POST['plugin-select'] : false;
-		$plugin_email = $this->get_plugin_email( $plugin_select );
 		$logs = $this->get_logs( $plugin_select );
 		$log_id = isset( $_POST['log-select'] ) ? $_POST['log-select'] : false;
 
@@ -418,7 +471,22 @@ class WP_Logger {
 		<div class="wrap">
 			<h2>Errors</h2>
 
-			<form method="post" action="<?php echo admin_url( 'admin.php?page=wp_logger_errors' ); ?>">
+			<?php if( isset( $_POST['message_sent'] ) && $_POST['message_sent'] ) : ?>
+				
+				<div class="updated">
+					<p>Your message was sent successfully!</p>
+				</div>
+
+			<?php elseif( isset( $_POST['message_sent'] ) && ! $_POST['message_sent'] ) : ?>
+
+				<div class="error">
+					<p>Your message failed to send.</p>
+				</div>
+
+			<?php endif; ?>
+
+			<form method="post" id="logger-form" action="<?php echo admin_url( 'admin.php?page=wp_logger_errors' ); ?>">
+				<?php wp_nonce_field( 'wp_logger_generate_report', 'wp_logger_form_nonce' ) ?>
 				<div id="col-container">
 					<div id="col-right">
 						<div class="col-wrap">
@@ -479,29 +547,21 @@ class WP_Logger {
 
 						<button class="button button-primary">Generate Report</button>
 						
-						<?php if( $plugin_select && $plugin_email ) :?>
-							<br>
-							<br>
-							<hr>
-
-							<h3>Send Report to Developer</h3>
-							<p>By clicking this button below, you can send the logs for this plugin directly to the developer.</p>
-							<a class="button">Send Report to Developer</a>
-						<?php endif; ?>
-
-						<br>
-						<br>
-						<hr>
+						<p><hr></p> <!-- Seperator -->
 
 						<h3>Email Results</h3>
 
+						<p>You can easily email the current log report that you have generated by entering an email below and clicking send!</p>
+						
 						<div class="form-field">
 							<label for="email-results">Email</label>
-							<input name="s" id="email-results" type="text" size="40" aria-required="true">
+							<input name="email-logs" value="<?php echo $this->get_plugin_email( $plugin_select ); ?>" id="email-results" type="text" size="40" aria-required="true">
 							<p>Enter an email above to email a log.</p>
 						</div>
 
-						<p><a class="button">Email Results</a></p>
+						<?php $search = isset( $_POST['search'] ) ? $_POST['search'] : ''; ?>
+
+						<p><a id="send-logger-email" class="button">Send</a></p>
 
 					</div>
 
