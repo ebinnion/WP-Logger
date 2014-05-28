@@ -39,7 +39,7 @@ class WP_Logger {
 
 		self::$instance = $this;
 
-		add_action( 'init',             array( $this, 'init' ) );
+		add_action( 'init',             array( $this, 'init' ), 1 );
 		add_action( 'admin_menu',       array( $this,'add_menu_page' ) );
 		add_filter( 'comments_clauses', array( $this, 'add_comment_author' ), 10, 2 );
 	}
