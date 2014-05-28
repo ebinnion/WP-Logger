@@ -76,6 +76,16 @@ class WP_Logger {
 	}
 
 	/**
+	 * Will retrieve the developer email for the current plugin
+	 *
+	 * @param  string $plugin_name The unique string identifying this plugin. Also acts as term for plugin.
+	 * @return string|bool The developers email or false if no email found.
+	 */
+	function get_plugin_email( $plugin_name ) {
+		return get_option( $plugin_name . '_email', false );
+	}
+
+	/**
 	 * Exposes a method to allow developers to log an error.
 	 *
 	 * @global WP_Post $post The global WP_Post object.
@@ -360,17 +370,6 @@ class WP_Logger {
 		);
 
 		return $logs;
-	}
-
-	/**
-	 * Will retrieve the developer email for the current plugin
-	 *
-	 * @param  string $plugin_term The unique string identifying this plugin. Also acts as term for plugin.
-	 * @return string|bool The developers email or false if no email found.
-	 */
-	function get_plugin_email( $plugin_term ) {
-		$plugin_slug = str_replace( 'wp-logger-', '', $plugin_term );
-		return get_option( "{$plugin_slug}_email", false );
 	}
 
 	/**
