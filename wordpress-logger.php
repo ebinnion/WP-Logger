@@ -56,7 +56,7 @@ class WP_Logger {
 		if ( ! empty( $plugin_name ) ) {
 			return sanitize_title( $plugin_name ) . '-' . sanitize_title( $slug );
 		} else {
-			return 'wp-' . sanitize_title( $slug );
+			return 'log-' . sanitize_title( $slug );
 		}
 	}
 
