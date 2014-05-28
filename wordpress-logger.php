@@ -124,7 +124,7 @@ class WP_Logger {
 					array(
 						'taxonomy' => self::TAXONOMY,
 						'field'    => 'slug',
-						'terms'    => self::prefix_slug( $plugin_name )
+						'terms'    => $prefixed_term
 					)
 				)
 			)
@@ -152,7 +152,7 @@ class WP_Logger {
 
 			$add_terms = wp_set_post_terms( 
 				$post_id, 
-				self::prefix_slug( $plugin_name ), 
+				$prefixed_term, 
 				self::TAXONOMY 
 			);
 
