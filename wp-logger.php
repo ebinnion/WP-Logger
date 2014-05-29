@@ -171,7 +171,7 @@ class WP_Logger {
 			'comment_post_ID'      => $post_id,
 			'comment_content'      => $message,
 			'comment_author'       => $plugin_name,
-			'comment_approved'     => 'wp-logger',
+			'comment_approved'     => self::CPT,
 			'comment_author_IP'    => '',
 			'comment_author_url'   => '',
 			'comment_author_email' => '',
