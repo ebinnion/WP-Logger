@@ -263,8 +263,6 @@ class WP_Logger {
 
 		// Condition for emailing logs. Logs are emailed as a JSON object.
 		if( isset( $_POST['send_logger_email'] ) ) {
-
-
 			$this->process_email_log();
 		}
 	}
