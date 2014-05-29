@@ -264,9 +264,21 @@ class WP_Logger {
 		// Condition for emailing logs. Logs are emailed as a JSON object.
 		if( isset( $_POST['send_logger_email'] ) ) {
 
-			check_admin_referer( 'wp_logger_generate_report', 'wp_logger_form_nonce' );
 
-			$entries = $this->get_entries();
+			$this->process_email_log();
+		}
+	}
+
+	/**
+	 * Will check if request to email log was sent from WordPress admin, then will attempt
+	 * to create a JSON log and send as an attachment. Falls back to sending JSON log
+	 * directly within email message.
+	 */
+	function process_email_log() {
+		check_admin_referer( 'wp_logger_generate_report', 'wp_logger_form_nonce' );
+
+		$entries = $this->get_entries();
+		if( ! empty( $entries ) ) {
 
 			$data = array();
 
@@ -282,11 +294,43 @@ class WP_Logger {
 
 			$plugin_email = $_POST['email-logs'];
 			$current_site = get_option( 'home' );
-			$headers      = 'From: WP Logger Logs' . "\r\n";
+			$time         = time();
 
-			$_POST['message_sent'] = wp_mail( $plugin_email, "Logs from {$current_site}", json_encode( $data ), $headers );
+			// Make sure that wp-content/wp-logger exists, if not, create it.
+    		if ( ! is_dir( WP_CONTENT_DIR . '/wp-logger' ) ) {
+    			mkdir( WP_CONTENT_DIR . '/wp-logger' );
+    		}
+
+    		// Test again to make sure that wp-content/wp-logger exists before attempting to open a file in the directory.
+			if ( is_dir( WP_CONTENT_DIR . '/wp-logger' ) ) {
+				$file = fopen( WP_CONTENT_DIR . "/wp-logger/{$time}.json",'w' );
+
+				/*
+				 * If the JSON file was created successfully, then let's send that as an attachment.
+				 * If the file was no created successfully, then attempt to send the logs directly within the email message.
+				 */
+				if( false !== $file ) {
+					fwrite( $file, json_encode( $data ) );
+
+					$_POST['message_sent'] = wp_mail(
+						$plugin_email,
+						sprintf( __( 'Logs from %s', 'wp-logger' ), $current_site ),
+						sprintf( __( 'Attached is a log in JSON format from %s', 'wp-logger' ), $current_site ),
+						'From: WP Logger Logs' . "\r\n",
+						array( WP_CONTENT_DIR . "/wp-logger/{$time}.json" )
+					);
+				} else {
+					$_POST['message_sent'] = wp_mail(
+						$plugin_email,
+						sprintf( __( 'Logs from %s', 'wp-logger' ), $current_site ),
+						json_encode( $data ),
+						'From: WP Logger Logs' . "\r\n"
+					);
+				}
+
+				fclose( $file );
+			}
 		}
-
 	}
 
 	/**
