@@ -302,11 +302,11 @@ class WP_Logger {
 			$time         = time();
 
 			// Make sure that wp-content/wp-logger exists, if not, create it.
-    		if ( ! is_dir( WP_CONTENT_DIR . '/wp-logger' ) ) {
-    			mkdir( WP_CONTENT_DIR . '/wp-logger' );
-    		}
+			if ( ! is_dir( WP_CONTENT_DIR . '/wp-logger' ) ) {
+				mkdir( WP_CONTENT_DIR . '/wp-logger' );
+			}
 
-    		// Test again to make sure that wp-content/wp-logger exists before attempting to open a file in the directory.
+			// Test again to make sure that wp-content/wp-logger exists before attempting to open a file in the directory.
 			if ( is_dir( WP_CONTENT_DIR . '/wp-logger' ) ) {
 				$file = fopen( WP_CONTENT_DIR . "/wp-logger/{$time}.json",'w' );
 
@@ -489,11 +489,11 @@ class WP_Logger {
 
 			<script>
 				(function( $ ) {
-				 	$( '#send-logger-email' ).click( function(){
-				 		var form = $( '#logger-form' );
-				 		form.prepend( '<input type="hidden" name="send_logger_email" value="1" >' );
-				 		form.submit();
-				 	});
+					$( '#send-logger-email' ).click( function(){
+						var form = $( '#logger-form' );
+						form.prepend( '<input type="hidden" name="send_logger_email" value="1" >' );
+						form.submit();
+					});
 				})( jQuery );
 			</script>
 
