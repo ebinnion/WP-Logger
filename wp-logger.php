@@ -158,8 +158,10 @@ class WP_Logger {
 				self::TAXONOMY
 			);
 
-			// A successful call to wp_set_post_terms will return an array. A failure could return
-			// a WP_Error object, false, or a string.
+			/*
+			 * A successful call to wp_set_post_terms will return an array. A failure could return
+			 * a WP_Error object, false, or a string.
+			 */
 			if( is_wp_error( $add_terms ) || false == $add_terms || ! is_array( $add_terms ) ) {
 				return false;
 			}
@@ -182,7 +184,7 @@ class WP_Logger {
 	}
 
 	/**
-	 * Register the wp-logger post type and plugin-errors taxonomy.
+	 * Register the wp-logger post type and plugin-errors taxonomy. Also, process bulk delete action and log mailing.
 	 */
 	function init() {
 		register_post_type(
@@ -325,6 +327,7 @@ class WP_Logger {
 	function get_entries() {
 		$log_query = new WP_Comment_Query;
 
+		// The CPT slug is stored in comment status, so we are querying for comment status here.
 		$args = array(
 			'status' => self::CPT,
 		);
@@ -388,8 +391,7 @@ class WP_Logger {
 	 * Return the posts (logs) for the posts with $plugin_term term
 	 *
 	 * @param  string $plugin_term The term that for the current plugin.
-	 * @return false|WP_Query False if no $plugin_term is passed or WP_Query object
-	 * containing the posts for this plugin.
+	 * @return false|WP_Query False if no $plugin_term is passed or WP_Query object containing the posts for this plugin.
 	 */
 	function get_logs( $plugin_term ) {
 		if( ! $plugin_term ) {
@@ -481,8 +483,10 @@ class WP_Logger {
 
 			<?php
 
-				// Check if email message was sent. If so, display a successful message on success or a
-				// failure message on failure.
+				/*
+				 * Check if email message was sent. If so, display a successful message on success or a
+				 * failure message on failure.
+				 */
 				if( isset( $_POST['message_sent'] ) && $_POST['message_sent'] ) : ?>
 
 				<div class="updated">
