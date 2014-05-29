@@ -438,13 +438,13 @@ class WP_Logger {
 			?>
 
 			<script>
-				jQuery( document ).ready( function( $ ){
-					$( '#send-logger-email' ).click( function(){
-						var form = $( '#logger-form' );
-						form.prepend( '<input type="hidden" name="send_logger_email" value="1" >' );
-						form.submit();
-					});
-				});
+				(function( $ ) {
+				 	$( '#send-logger-email' ).click( function(){
+				 		var form = $( '#logger-form' );
+				 		form.prepend( '<input type="hidden" name="send_logger_email" value="1" >' );
+				 		form.submit();
+				 	});
+				})( jQuery );
 			</script>
 
 			<?php
