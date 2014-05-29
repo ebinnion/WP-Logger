@@ -297,7 +297,7 @@ class WP_Logger {
 				);
 			}
 
-			$plugin_email = $_POST['email-logs'];
+			$plugin_email = sanitize_email( $_POST['email-logs'] );
 			$current_site = get_option( 'home' );
 			$time         = time();
 
