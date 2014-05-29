@@ -9,30 +9,30 @@ class WP_Logger_List_Table extends WP_List_Table {
 	function __construct( $items ) {
 		global $status, $page;
 
-		$this->items = $items['entries'];
+		$this->items       = $items['entries'];
 		$this->total_items = $items['count'];
 
-		parent::__construct( 
+		parent::__construct(
 			array(
-				'singular'  => esc_html__( 'book', 'mylisttable' ),     //singular name of the listed records
-				'plural'    => esc_html__( 'books', 'mylisttable' ),   //plural name of the listed records
-				'ajax'      => false        //does this table support ajax?
+				'singular'  => esc_html__( 'Error', 'wp-logger' ),
+				'plural'    => esc_html__( 'Errors', 'wp-logger' ),
+				'ajax'      => false
 			)
 		);
 	}
 
 	public function prepare_items() {
-        $columns = $this->get_columns();
-        $hidden = $this->get_hidden_columns();
+        $columns  = $this->get_columns();
+        $hidden   = $this->get_hidden_columns();
         $sortable = $this->get_sortable_columns();
 
         $data = $this->table_data();
 
-        $this->set_pagination_args( 
+        $this->set_pagination_args(
         	array(
-	            'total_items' => $this->total_items,                  //WE have to calculate the total number of items
-	            'per_page'    => 20                     //WE have to determine how many items to show on a page
-        	) 
+	            'total_items' => $this->total_items,
+	            'per_page'    => 20
+        	)
         );
 
         $this->_column_headers = array( $columns, $hidden, $sortable );
@@ -42,10 +42,10 @@ class WP_Logger_List_Table extends WP_List_Table {
     public function get_columns() {
         $columns = array(
         	'cb'           => '<input type="checkbox" />',
-            'error_msg'    => 'Error Message',
-            'error_plugin' => 'Plugin',
-            'error_date'   => 'Date',
-           
+            'error_msg'    => esc_html__( 'Error Message', 'wp-logger' ),
+            'error_plugin' => esc_html__( 'Plugin', 'wp-logger' ),
+            'error_date'   => esc_html__( 'Date', 'wp-logger' ),
+
         );
 
         return $columns;
@@ -101,7 +101,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 
 	function get_bulk_actions() {
 		$actions = array(
-			'delete'    => 'Delete'
+			'delete'    => esc_html__( 'Delete', 'wp-logger' )
 		);
 		return $actions;
 	}

@@ -49,11 +49,10 @@ class WP_Logger {
 	 * Prefixes a string with 'wp-logger-' or $plugin_name
 	 *
 	 * @param  string $slug Plugin slug.
-	 * @param string $plugin_name If set, slug will be prefixed with plugin_name
+	 * @param  string $plugin_name If set, slug will be prefixed with plugin_name
 	 * @return string String that being with 'wp-logger-'
 	 */
 	static function prefix_slug( $slug, $plugin_name = '' ) {
-
 		if ( ! empty( $plugin_name ) ) {
 			return sanitize_title( $plugin_name ) . '-' . sanitize_title( $slug );
 		} else {
@@ -65,12 +64,14 @@ class WP_Logger {
 	 * Exposes method used to register a developer's email for sending logs.
 	 *
 	 * @param  string $plugin_name Plugin slug.
-	 * @param string $email The developer's email address.
-	 * @return bool Returns true on success, false if $email is empty or if update/add fails.
+	 * @param  string $email The developer's email address.
+	 * @return bool|WP_error Returns true on success, false if $email is empty or if update/add fails, or WP_Error object if email is not valid.
 	 */
 	function register_plugin_email( $plugin_name, $email = '' ) {
-		if ( ! empty( $email ) ) {
-			 return update_option( $plugin_name . '_email', sanitize_email( $email ) );
+		if ( is_email( $email ) ) {
+			return update_option( $plugin_name . '_email', sanitize_email( $email ) );
+		} else {
+			return new WP_Error( 'not-an-email', esc_html__( 'The second parameter for register_plugin_email must be a valid email address.', 'wp-logger-api' ) );
 		}
 
 		return false;
@@ -103,8 +104,8 @@ class WP_Logger {
 		if( ! term_exists( $prefixed_term, self::TAXONOMY ) ) {
 
 			// Create a taxonomy term that distinguishes current plugin from others.
-			$registered = wp_insert_term( 
-				$plugin_name, 
+			$registered = wp_insert_term(
+				$plugin_name,
 				self::TAXONOMY,
 				array(
 					'slug' => $prefixed_term
@@ -151,10 +152,10 @@ class WP_Logger {
 				return false;
 			}
 
-			$add_terms = wp_set_post_terms( 
-				$post_id, 
-				$prefixed_term, 
-				self::TAXONOMY 
+			$add_terms = wp_set_post_terms(
+				$post_id,
+				$prefixed_term,
+				self::TAXONOMY
 			);
 
 			// A successful call to wp_set_post_terms will return an array. A failure could return
@@ -184,7 +185,6 @@ class WP_Logger {
 	 * Register the wp-logger post type and plugin-errors taxonomy.
 	 */
 	function init() {
-
 		register_post_type(
 			self::CPT,
 			array(
@@ -194,15 +194,15 @@ class WP_Logger {
 				'menu_position' => 100,
 				'supports'      => false,
 				'labels'        => array(
-					'name'               => esc_html__( 'Errors', 'wp-logger' ),
-					'singular_name'      => esc_html__( 'Error', 'wp-logger' ),
-					'add_new'            => esc_html__( 'Add New Error', 'wp-logger' ),
-					'add_new_item'       => esc_html__( 'Add New Error', 'wp-logger' ),
-					'edit_item'          => esc_html__( 'Edit Error', 'wp-logger' ),
-					'new_item'           => esc_html__( 'Add New Error', 'wp-logger' ),
-					'view_item'          => esc_html__( 'View Error', 'wp-logger' ),
-					'search_items'       => esc_html__( 'Search Errors', 'wp-logger' ),
-					'not_found'          => esc_html__( 'No errors found', 'wp-logger' ),
+					'name'               => esc_html__( 'Errors'                  , 'wp-logger' ),
+					'singular_name'      => esc_html__( 'Error'                   , 'wp-logger' ),
+					'add_new'            => esc_html__( 'Add New Error'           , 'wp-logger' ),
+					'add_new_item'       => esc_html__( 'Add New Error'           , 'wp-logger' ),
+					'edit_item'          => esc_html__( 'Edit Error'              , 'wp-logger' ),
+					'new_item'           => esc_html__( 'Add New Error'           , 'wp-logger' ),
+					'view_item'          => esc_html__( 'View Error'              , 'wp-logger' ),
+					'search_items'       => esc_html__( 'Search Errors'           , 'wp-logger' ),
+					'not_found'          => esc_html__( 'No errors found'         , 'wp-logger' ),
 					'not_found_in_trash' => esc_html__( 'No errors found in trash', 'wp-logger' )
 				),
 				'capabilities' => array(
@@ -217,24 +217,24 @@ class WP_Logger {
 				),
 			)
 		);
-	
+
 		$labels = array(
-			'name'              => esc_html__( 'Plugins', 'wp-logger' ),
-			'singular_name'     => esc_html__( 'Plugin', 'wp-logger' ),
-			'search_items'      => esc_html__( 'Search Plugins', 'wp-logger' ),
-			'all_items'         => esc_html__( 'All Plugins', 'wp-logger' ),
-			'parent_item'       => esc_html__( 'Parent Plugin', 'wp-logger' ),
-			'parent_item_colon' => esc_html__( 'Parent Plugin:', 'wp-logger' ),
-			'edit_item'         => esc_html__( 'Edit Plugin', 'wp-logger' ),
-			'update_item'       => esc_html__( 'Update Plugin', 'wp-logger' ),
-			'add_new_item'      => esc_html__( 'Add New Plugin', 'wp-logger' ),
+			'name'              => esc_html__( 'Plugins'        , 'wp-logger' ),
+			'singular_name'     => esc_html__( 'Plugin'         , 'wp-logger' ),
+			'search_items'      => esc_html__( 'Search Plugins' , 'wp-logger' ),
+			'all_items'         => esc_html__( 'All Plugins'    , 'wp-logger' ),
+			'parent_item'       => esc_html__( 'Parent Plugin'  , 'wp-logger' ),
+			'parent_item_colon' => esc_html__( 'Parent Plugin:' , 'wp-logger' ),
+			'edit_item'         => esc_html__( 'Edit Plugin'    , 'wp-logger' ),
+			'update_item'       => esc_html__( 'Update Plugin'  , 'wp-logger' ),
+			'add_new_item'      => esc_html__( 'Add New Plugin' , 'wp-logger' ),
 			'new_item_name'     => esc_html__( 'New Plugin Name', 'wp-logger' ),
-			'menu_name'         => esc_html__( 'Plugins', 'wp-logger' ),
+			'menu_name'         => esc_html__( 'Plugins'        , 'wp-logger' ),
 		);
 
-		register_taxonomy( 
-			self::TAXONOMY, 
-			self::CPT, 
+		register_taxonomy(
+			self::TAXONOMY,
+			self::CPT,
 			array(
 				'labels'            => $labels,
 				'show_in_nav_menus' => true,
@@ -244,25 +244,32 @@ class WP_Logger {
 		);
 
 		// Delete any error entries that were checked through the bulk action interface.
-		if( is_admin() && isset( $_GET['page'] ) && 'wp_logger_errors' == $_GET['page'] && isset( $_POST['action'] ) && 'delete' == $_POST['action'] ) {
-			check_admin_referer( 'wp_logger_generate_report', 'wp_logger_form_nonce' );
+		if( is_admin() && isset( $_GET['page'] ) ) {
 
-			if( ! empty( $_POST['logs'] ) ) {
+			if( 'wp_logger_errors' == $_GET['page'] && isset( $_POST['action'] ) && 'delete' == $_POST['action'] ) {
 
-				foreach( $_POST['logs'] as $log ) {
-					wp_delete_comment( intval( $log ), true );
+				check_admin_referer( 'wp_logger_generate_report', 'wp_logger_form_nonce' );
+
+				if( ! empty( $_POST['logs'] ) ) {
+
+					foreach( $_POST['logs'] as $log ) {
+						wp_delete_comment( intval( $log ), true );
+					}
 				}
 			}
 		}
 
 		// Condition for emailing logs. Logs are emailed as a JSON object.
 		if( isset( $_POST['send_logger_email'] ) ) {
+
 			check_admin_referer( 'wp_logger_generate_report', 'wp_logger_form_nonce' );
 
 			$entries = $this->get_entries();
 
 			$data = array();
+
 			foreach( $entries['entries'] as $entry ){
+
 				$data[] = array(
 					'id'           => $entry->comment_ID,
 					'error_msg'    => $entry->comment_content,
@@ -285,7 +292,7 @@ class WP_Logger {
 	 *
 	 */
 	function add_menu_page() {
-		add_menu_page( 'Errors', 'Errors', 'update_core', 'wp_logger_errors', array( $this, 'generate_menu_page' ), 'dashicons-editor-help', 100 );
+		add_menu_page( esc_html__( 'Errors', 'wp-logger' ), esc_html__( 'Errors', 'wp-logger' ), 'update_core', 'wp_logger_errors', array( $this, 'generate_menu_page' ), 'dashicons-editor-help', 100 );
 	}
 
 	/**
@@ -323,6 +330,7 @@ class WP_Logger {
 		);
 
 		if ( isset( $_GET['orderby'] ) ) {
+
 			if ( 'error_plugin' == $_GET['orderby'] ) {
 				$args['orderby'] = 'comment_author';
 			} else if ( 'error_date' == $_GET['orderby'] ) {
@@ -352,10 +360,10 @@ class WP_Logger {
 		$return = array();
 
 		// Get the count of all comments that fit these arguments.
-		$args['count'] = true;
+		$args['count']   = true;
 		$return['count'] = $log_query->query( $args );
 
-		
+
 		$args['count'] = false;
 
 		// If sending an email of logs, then return as many entries as possible.
@@ -369,7 +377,7 @@ class WP_Logger {
 				$args['offset'] = ( intval( $_GET['paged'] ) - 1 ) * 20;
 			}
 		}
-		
+
 		// Only return the first 20 of the comments that fit these arguments
 		$return['entries'] = $log_query->query( $args );
 
@@ -410,11 +418,11 @@ class WP_Logger {
 	 * @return array. An array of term objects.
 	 */
 	function get_plugins() {
-		$plugins = get_terms( 
+		$plugins = get_terms(
 			self::TAXONOMY,
 			array(
 				'orderby' => 'name',
-				'order' => 'ASC'
+				'order'   => 'ASC'
 			)
 		);
 
@@ -456,31 +464,35 @@ class WP_Logger {
 		require_once( trailingslashit( dirname( __FILE__ ) ) . 'lib/class-wp-logger-list-table.php' );
 
 		$plugin_select = isset( $_POST['plugin-select'] ) ? $_POST['plugin-select'] : false;
-		$logs = $this->get_logs( $plugin_select );
-		$log_id = isset( $_POST['log-select'] ) ? $_POST['log-select'] : false;
+		$log_id        = isset( $_POST['log-select'] ) ? $_POST['log-select'] : false;
+		$search        = isset( $_POST['search'] ) ? $_POST['search'] : '';
 
-		$entries = $this->get_entries();
+		$logs          = $this->get_logs( $plugin_select );
+		$entries       = $this->get_entries();
+		$plugins       = $this->get_plugins();
 
-		$plugins = $this->get_plugins();
-
-		$logger_table = new WP_Logger_List_Table( $entries );
+		$logger_table  = new WP_Logger_List_Table( $entries );
 		$logger_table->prepare_items();
 
 		?>
 
 		<div class="wrap">
-			<h2>Errors</h2>
+			<h2><?php esc_html_e( 'Errors', 'wp-logger' ); ?></h2>
 
-			<?php if( isset( $_POST['message_sent'] ) && $_POST['message_sent'] ) : ?>
-				
+			<?php
+
+				// Check if email message was sent. If so, display a successful message on success or a
+				// failure message on failure.
+				if( isset( $_POST['message_sent'] ) && $_POST['message_sent'] ) : ?>
+
 				<div class="updated">
-					<p>Your message was sent successfully!</p>
+					<p><?php esc_html_e( 'Your message was sent successfully!', 'wp-logger' ); ?></p>
 				</div>
 
 			<?php elseif( isset( $_POST['message_sent'] ) && ! $_POST['message_sent'] ) : ?>
 
 				<div class="error">
-					<p>Your message failed to send.</p>
+					<p><?php esc_html_e( 'Your message failed to send.', 'wp-logger' ); ?></p>
 				</div>
 
 			<?php endif; ?>
@@ -490,34 +502,40 @@ class WP_Logger {
 				<div id="col-container">
 					<div id="col-right">
 						<div class="col-wrap">
-							<?php $logger_table->display(); ?>
+							<?php
+
+								// Uses WP_Logger_List_Table to display the logger entries.
+								$logger_table->display();
+							?>
 						</div>
 					</div>
 
 					<div id="col-left">
-						<h3>Generate Error Report</h3>
+						<h3><?php esc_html_e( 'Generate Error Report', 'wp-logger' ); ?></h3>
 
 						<div class="form-field">
-							<label for="search">Search</label>
-							<input name="search" id="search" type="text" value="<?php if( isset( $_POST['search'] ) ) { echo $_POST['search']; } ?>" size="40" aria-required="true">
+							<label for="search"><?php esc_html_e( 'Search', 'wp-logger' ); ?></label>
+							<input name="search" id="search" type="text" value="<?php if( isset( $_POST['search'] ) ) { echo esc_attr( $_POST['search'] ); } ?>" size="40" aria-required="true">
 						</div>
 
 						<?php if ( ! empty( $plugins ) ) : ?>
 
 							<div class="form-field">
 								<p>
-									<label for="plugin-select">Plugin</label><br>
+									<label for="plugin-select"><?php esc_html_e( 'Plugin', 'wp-logger' ); ?></label>
+									<br />
 									<select id="plugin-select" name="plugin-select">
-										<option value="">All Plugins</option>
+										<option value=""><?php esc_html_e( 'All Plugins', 'wp-logger' ); ?></option>
 
 										<?php
 											foreach ( $plugins as $plugin ) {
-												echo "<option value='$plugin->name'" . selected( $plugin->name, $plugin_select ) . ">$plugin->name</option>";
+												$temp_plugin_name = esc_attr( $plugin->name );
+												echo "<option value='$temp_plugin_name'" . selected( $plugin->name, $plugin_select, false ) . ">$temp_plugin_name</option>";
 											}
 										?>
 									</select>
-									<br>
-									Select a plugin to view errors for.
+									<br />
+									<?php esc_html_e( 'Select a plugin to view errors for.', 'wp-logger' ); ?>
 								</p>
 							</div>
 
@@ -527,41 +545,46 @@ class WP_Logger {
 
 							<div class="form-field">
 								<p>
-									<label for="log-select">Log</label><br>
+									<label for="log-select"><?php esc_html_e( 'Log', 'wp-logger' ); ?></label>
+									<br />
 									<select id="log-select" name="log-select">
-										<option value="">All Logs</option>
+										<option value=""><?php esc_html_e( 'All Logs', 'wp-logger' ); ?></option>
 
 										<?php
 											while ( $logs->have_posts() ) {
 												$logs->the_post();
-												echo "<option value='$post->ID'" . selected( $post->ID, $log_id ) . ">$post->post_title</option>";
+												$temp_log_id    = esc_attr( $post->ID );
+												$temp_log_title = esc_attr( $post->post_title );
+												echo "<option value='$temp_log_id'" . selected( $post->ID, $log_id, false ) . ">$temp_log_title</option>";
 											}
 										?>
 									</select>
-									<br>
-									Select a log for this plugin.
+									<br />
+									<?php esc_html_e( 'Select a log for this plugin.', 'wp-loggger' ); ?>
 								</p>
 							</div>
 
 						<?php endif; ?>
 
-						<button class="button button-primary">Generate Report</button>
-						
-						<p><hr></p> <!-- Seperator -->
+						<button class="button button-primary"><?php esc_html_e( 'Generate Report', 'wp-logger' ); ?></button>
 
-						<h3>Email Results</h3>
+						<p>
+							<hr>
+						</p> <!-- Seperator -->
 
-						<p>You can easily email the current log report that you have generated by entering an email below and clicking send!</p>
-						
+						<h3><?php esc_html_e( 'Email Results', 'wp-logger' ); ?></h3>
+
+						<p><?php esc_html_e( 'You can easily email the current log report that you have generated by entering an email below and clicking send!', 'wp-logger' ); ?></p>
+
 						<div class="form-field">
 							<label for="email-results">Email</label>
-							<input name="email-logs" value="<?php echo $this->get_plugin_email( $plugin_select ); ?>" id="email-results" type="text" size="40" aria-required="true">
-							<p>Enter an email above to email a log.</p>
+							<input name="email-logs" value="<?php echo esc_attr( $this->get_plugin_email( $plugin_select ) ); ?>" id="email-results" type="text" size="40" aria-required="true">
+							<p><?php esc_html_e( 'Enter an email above to email a log.', 'wp-logger' ); ?></p>
 						</div>
 
-						<?php $search = isset( $_POST['search'] ) ? $_POST['search'] : ''; ?>
-
-						<p><a id="send-logger-email" class="button">Send</a></p>
+						<p>
+							<a id="send-logger-email" class="button"><?php esc_html_e( 'Send', 'wp-logger' ); ?></a>
+						</p>
 
 					</div>
 
