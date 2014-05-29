@@ -81,7 +81,7 @@ class WP_Logger {
 	 * Will retrieve the developer email for the current plugin
 	 *
 	 * @param  string $plugin_name The unique string identifying this plugin. Also acts as term for plugin.
-	 * @return string|The developers email or empty string.
+	 * @return string The developers email or empty string.
 	 */
 	function get_plugin_email( $plugin_name ) {
 		return get_option( $plugin_name . '_email', '' );
@@ -92,7 +92,7 @@ class WP_Logger {
 	 *
 	 * @global WP_Post $post The global WP_Post object.
 	 *
-	 * @param  WP_Post|string $log WP_Post object if log already exists and a string if log needs to be created.
+	 * @param  string $log String identifying this plugin.
 	 * @param  string $plugin_name The plugin's slug.
 	 * @return bool Returns true if entry was successfully added and false if entry failed.
 	 */
@@ -101,6 +101,7 @@ class WP_Logger {
 
 		$prefixed_term = self::prefix_slug( $plugin_name );
 
+		// If there is not currently a term (category) for this plugin, create it.
 		if( ! term_exists( $prefixed_term, self::TAXONOMY ) ) {
 
 			// Create a taxonomy term that distinguishes current plugin from others.
@@ -132,6 +133,10 @@ class WP_Logger {
 			)
 		);
 
+		/*
+		 * If the log that the developer wants to write to exists, add a comment.
+		 * Else, create log then add comment.
+		 */
 		if( $log_exists->have_posts() ) {
 			$log_exists->the_post();
 			$post_id = $post->ID;
@@ -276,8 +281,10 @@ class WP_Logger {
 		check_admin_referer( 'wp_logger_generate_report', 'wp_logger_form_nonce' );
 
 		$entries = $this->get_entries();
+
 		if( ! empty( $entries ) ) {
 
+			// Build an array of just the data that needs to be sent to the developer.
 			$data = array();
 
 			foreach( $entries['entries'] as $entry ){
@@ -333,7 +340,6 @@ class WP_Logger {
 
 	/**
 	 * Adds a menu page to the WordPress admin with a title of Errors
-	 *
 	 */
 	function add_menu_page() {
 		add_menu_page( esc_html__( 'Errors', 'wp-logger' ), esc_html__( 'Errors', 'wp-logger' ), 'update_core', 'wp_logger_errors', array( $this, 'generate_menu_page' ), 'dashicons-editor-help', 100 );
