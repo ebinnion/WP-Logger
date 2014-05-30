@@ -18,16 +18,39 @@ Then, the user can email these logs directly to the developer in as little as 2 
 
 ## For Plugin Developers
 
-There are two ways that developers may log messages with the WP Logger plugin. The simpler, and preferred, method would be to use the WordPress Hook API.
+### Registering Developer email
+WP Logger allows plugin developers to register an email that users can then send logs to. This serves to simplify the process of getting information from users. Below is an example of registering an email:
 
-### Using the WordPress Hook API
+```php
+add_filter( 'wp_logger_author_email', 'add_logger_plugin_email' );
+function add_logger_plugin_email( $emails ) {
+	$emails['wp-logger-test'] = 'ericbinnion@gmail.com';
+	return $emails;
+}
+```
+
+### Retrieving WP Logger Version Number
+You can retrieve the current WP Logger version number, and check if WP Logger is installed, by using the following:
+
+```php
+$wp_logger_version = apply_filters( 'wp_logger_version', false );
+
+// Check if WP Logger is installed
+if( $wp_logger_version ) {
+	// WP Logger is installed
+}
+```
+
+### There are two ways that developers may log messages with the WP Logger plugin. The simpler, and preferred, method would be to use the WordPress Hook API.
+
+#### Using the WordPress Hook API
 WP Logger hooks the `WP_Logger:add_entry()` function onto the `wp_logger_add` action. This means that you only need to add this one line of code wherever you would like to log an entry:
 
 ```php
 do_action( 'wp_logger_add', $plugin_slug, $log_name, $message, $severity );
 ```
 
-### Using the Global WP_Logger instantiation
+#### Using the Global WP_Logger instantiation
 Because it is not guaranteed that users of this plugin will have WP Logger installed, you should check to see if the WP Logger plugin is installed before making any entries.
 
 The function below simplifies the process of using WP Logger with your plugin. To customize this plugin to your needs, all you need to do is:
