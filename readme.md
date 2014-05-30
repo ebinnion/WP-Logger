@@ -16,6 +16,14 @@ Once a user installs the WP Logger plugin, the WP Logger API will begin to log a
 
 Then, the user can email these logs directly to the developer in as little as 2 actions (Selecting which plugin and hitting send).
 
+## For Website Owners and Administrators
+
+WP Logger is a plugin that, when installed, allows developers to log messages that will assist them in debugging issues with plugins on your site.
+
+Once WP Logger is installed, developers can log custom messsages that will allow them to more quickly diagnose issues with your website. For security, this data is stored on your website and it is only available to developers after *you* generate a report and send it to the developer by clicking a button.
+
+Using this plugin when needed should result in quicker issue resolution and less work on your part.
+
 ## For Plugin Developers
 
 ### Registering Developer email
