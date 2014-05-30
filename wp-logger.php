@@ -120,7 +120,7 @@ class WP_Logger {
 		$log_exists = new WP_Query(
 			array(
 				'post_type' => self::CPT,
-				'post_name' => self::prefix_slug( $log, $plugin_name ),
+				'name'      => self::prefix_slug( $log, $plugin_name ),
 				'tax_query' => array(
 					array(
 						'taxonomy' => self::TAXONOMY,
