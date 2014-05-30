@@ -270,6 +270,11 @@ class WP_Logger {
 		if( isset( $_POST['send_logger_email'] ) ) {
 			$this->process_email_log();
 		}
+
+		// Allows entering a page into the pagination input.
+		if( isset( $_POST['paged'] ) ) {
+			$_GET['paged'] = $_POST['paged'];
+		}
 	}
 
 	/**
