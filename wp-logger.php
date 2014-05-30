@@ -43,6 +43,7 @@ class WP_Logger {
 		add_action( 'admin_menu',       array( $this, 'add_menu_page' ) );
 		add_action( 'admin_footer',     array( $this, 'admin_footer' ) );
 		add_filter( 'comments_clauses', array( $this, 'add_comment_author' ), 10, 2 );
+		add_action( 'wp_logger_add',    array( $this, 'add_entry' ), 10, 4  );
 	}
 
 	/**
