@@ -61,30 +61,28 @@ class WP_Logger {
 	}
 
 	/**
-	 * Exposes method used to register a developer's email for sending logs.
-	 *
-	 * @param  string $plugin_name Plugin slug.
-	 * @param  string $email The developer's email address.
-	 * @return bool|WP_error Returns true on success, false if $email is empty or if update/add fails, or WP_Error object if email is not valid.
-	 */
-	function register_plugin_email( $plugin_name, $email = '' ) {
-		if ( is_email( $email ) ) {
-			return update_option( $plugin_name . '_email', sanitize_email( $email ) );
-		} else {
-			return new WP_Error( 'not-an-email', esc_html__( 'The second parameter for register_plugin_email must be a valid email address.', 'wp-logger-api' ) );
-		}
-
-		return false;
-	}
-
-	/**
 	 * Will retrieve the developer email for the current plugin
 	 *
 	 * @param  string $plugin_name The unique string identifying this plugin. Also acts as term for plugin.
 	 * @return string The developers email or empty string.
 	 */
 	function get_plugin_email( $plugin_name ) {
-		return get_option( $plugin_name . '_email', '' );
+
+		/**
+		 * Allows plugin developers to register their email by using a filter.
+		 *
+		 * Plugin developers can register an email by adding a key => value pair into the array
+		 * where the key is the plugin's slug and the value is the developer's email address.
+		 *
+		 * @param array Empty array.
+		 */
+		$plugin_emails = apply_filters( 'wp_logger_author_email', array() );
+
+		if( isset( $plugin_emails[ $plugin_name ] ) ) {
+			return sanitize_email( $plugin_emails[ $plugin_name ] );
+		} else {
+			return '';
+		}
 	}
 
 	/**
