@@ -53,7 +53,7 @@ class WP_Logger {
 	 * @param  string $plugin_name If set, slug will be prefixed with plugin_name
 	 * @return string String that being with 'wp-logger-'
 	 */
-	static function prefix_slug( $slug, $plugin_name = '' ) {
+	private function prefix_slug( $slug, $plugin_name = '' ) {
 		if ( ! empty( $plugin_name ) ) {
 			return sanitize_title( $plugin_name ) . '-' . sanitize_title( $slug );
 		} else {
@@ -67,7 +67,7 @@ class WP_Logger {
 	 * @param  string $plugin_name The unique string identifying this plugin. Also acts as term for plugin.
 	 * @return string The developers email or empty string.
 	 */
-	function get_plugin_email( $plugin_name ) {
+	private function get_plugin_email( $plugin_name ) {
 
 		/**
 		 * Allows plugin developers to register their email by using a filter.
@@ -98,7 +98,7 @@ class WP_Logger {
 	function add_entry( $plugin_name, $log = 'message', $message, $severity = 1 ) {
 		global $post;
 
-		$prefixed_term = self::prefix_slug( $plugin_name );
+		$prefixed_term = $this->prefix_slug( $plugin_name );
 
 		// If there is not currently a term (category) for this plugin, create it.
 		if( ! term_exists( $prefixed_term, self::TAXONOMY ) ) {
@@ -121,7 +121,7 @@ class WP_Logger {
 		$log_exists = new WP_Query(
 			array(
 				'post_type' => self::CPT,
-				'name'      => self::prefix_slug( $log, $plugin_name ),
+				'name'      => $this->prefix_slug( $log, $plugin_name ),
 				'tax_query' => array(
 					array(
 						'taxonomy' => self::TAXONOMY,
@@ -144,7 +144,7 @@ class WP_Logger {
 			$post_id = wp_insert_post(
 				array(
 					'post_title'     => $log,
-					'post_name'      => self::prefix_slug( $log, $plugin_name ),
+					'post_name'      => $this->prefix_slug( $log, $plugin_name ),
 					'post_type'      => self::CPT,
 					'comment_status' => 'closed',
 					'ping_status'    => 'closed',
@@ -282,7 +282,7 @@ class WP_Logger {
 	 * to create a JSON log and send as an attachment. Falls back to sending JSON log
 	 * directly within email message.
 	 */
-	function process_email_log() {
+	private function process_email_log() {
 		check_admin_referer( 'wp_logger_generate_report', 'wp_logger_form_nonce' );
 
 		$entries = $this->get_entries();
@@ -378,7 +378,7 @@ class WP_Logger {
 	 *     array $entries An array of comment comment rows.
 	 * }
 	 */
-	function get_entries() {
+	private function get_entries() {
 		$log_query = new WP_Comment_Query;
 
 		// The CPT slug is stored in comment status, so we are querying for comment status here.
@@ -449,7 +449,7 @@ class WP_Logger {
 	 * @param  string $plugin_term The term that for the current plugin.
 	 * @return false|WP_Query False if no $plugin_term is passed or WP_Query object containing the posts for this plugin.
 	 */
-	function get_logs( $plugin_term ) {
+	private function get_logs( $plugin_term ) {
 		if( ! $plugin_term ) {
 			return false;
 		}
@@ -461,7 +461,7 @@ class WP_Logger {
 					array(
 						'taxonomy' => self::TAXONOMY,
 						'field'    => 'slug',
-						'terms'    => self::prefix_slug( $plugin_term )
+						'terms'    => $this->prefix_slug( $plugin_term )
 					)
 				)
 			)
@@ -475,7 +475,7 @@ class WP_Logger {
 	 *
 	 * @return array. An array of term objects.
 	 */
-	function get_plugins() {
+	private function get_plugins() {
 		$plugins = get_terms(
 			self::TAXONOMY,
 			array(
