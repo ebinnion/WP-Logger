@@ -179,7 +179,7 @@ class WP_Logger {
 			'comment_author_IP'    => '',
 			'comment_author_url'   => '',
 			'comment_author_email' => '',
-			'user_id'              => $severity
+			'user_id'              => intval( $severity ),
 		);
 
 		$comment_id = wp_insert_comment( wp_filter_comment( $comment_data ) );
