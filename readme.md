@@ -41,7 +41,9 @@ if( $wp_logger_version ) {
 }
 ```
 
-### There are two ways that developers may log messages with the WP Logger plugin. The simpler, and preferred, method would be to use the WordPress Hook API.
+### Logging Errors/Messages/Etc.
+
+There are two ways that developers may log messages with the WP Logger plugin. The simpler, and preferred, method would be to use the WordPress Hook API.
 
 #### Using the WordPress Hook API
 WP Logger hooks the `WP_Logger:add_entry()` function onto the `wp_logger_add` action. This means that you only need to add this one line of code wherever you would like to log an entry:
