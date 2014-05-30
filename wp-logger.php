@@ -94,7 +94,7 @@ class WP_Logger {
 	 * @param  string $plugin_name The plugin's slug.
 	 * @return bool Returns true if entry was successfully added and false if entry failed.
 	 */
-	function add_entry( $plugin_name, $log = 'message', $message ) {
+	function add_entry( $plugin_name, $log = 'message', $message, $severity = 1 ) {
 		global $post;
 
 		$prefixed_term = self::prefix_slug( $plugin_name );
@@ -178,6 +178,7 @@ class WP_Logger {
 			'comment_author_IP'    => '',
 			'comment_author_url'   => '',
 			'comment_author_email' => '',
+			'user_id'              => $severity
 		);
 
 		$comment_id = wp_insert_comment( wp_filter_comment( $comment_data ) );
@@ -288,10 +289,11 @@ class WP_Logger {
 			foreach( $entries['entries'] as $entry ){
 
 				$data[] = array(
-					'id'           => $entry->comment_ID,
-					'error_msg'    => $entry->comment_content,
-					'error_date'   => $entry->comment_date,
-					'error_plugin' => $entry->comment_author
+					'id'             => $entry->comment_ID,
+					'error_severity' => $entry->user_id,
+					'error_msg'      => $entry->comment_content,
+					'error_date'     => $entry->comment_date,
+					'error_plugin'   => $entry->comment_author,
 				);
 			}
 
@@ -384,6 +386,8 @@ class WP_Logger {
 				$args['orderby'] = 'comment_author';
 			} else if ( 'error_date' == $_GET['orderby'] ) {
 				$args['orderby'] = 'comment_date';
+			} else if ( 'error_severity' == $_GET['orderby'] ) {
+				$args['orderby'] = 'user_id';
 			}
 
 			if( isset( $_GET['order'] ) ) {

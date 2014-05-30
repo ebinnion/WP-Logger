@@ -41,10 +41,11 @@ class WP_Logger_List_Table extends WP_List_Table {
 
     public function get_columns() {
         $columns = array(
-        	'cb'           => '<input type="checkbox" />',
-            'error_msg'    => esc_html__( 'Error Message', 'wp-logger' ),
-            'error_plugin' => esc_html__( 'Plugin', 'wp-logger' ),
-            'error_date'   => esc_html__( 'Date', 'wp-logger' ),
+        	'cb'             => '<input type="checkbox" />',
+            'error_msg'      => esc_html__( 'Error Message', 'wp-logger' ),
+            'error_severity' => esc_html__( 'Severity', 'wp-logger' ),
+            'error_plugin'   => esc_html__( 'Plugin', 'wp-logger' ),
+            'error_date'     => esc_html__( 'Date', 'wp-logger' ),
 
         );
 
@@ -57,8 +58,9 @@ class WP_Logger_List_Table extends WP_List_Table {
 
     public function get_sortable_columns() {
         return array(
-        	'error_plugin' => array( 'error_plugin', false ),
-        	'error_date'   => array( 'error_date', false )
+            'error_severity' => array( 'error_severity', false ),
+        	'error_plugin'   => array( 'error_plugin', false ),
+        	'error_date'     => array( 'error_date', false ),
         );
     }
 
@@ -68,10 +70,11 @@ class WP_Logger_List_Table extends WP_List_Table {
     	if( ! empty( $this->items ) ) {
     		foreach ( $this->items as $item ) {
     			$data[] = array(
-    				'id'           => $item->comment_ID,
-    				'error_msg'    => $item->comment_content,
-    				'error_date'   => $item->comment_date,
-    				'error_plugin' => $item->comment_author
+    				'id'            => $item->comment_ID,
+                    'error_severity'=> $item->user_id,
+    				'error_msg'     => $item->comment_content,
+    				'error_date'    => $item->comment_date,
+    				'error_plugin'  => $item->comment_author,
     			);
     		}
     	}
@@ -97,6 +100,10 @@ class WP_Logger_List_Table extends WP_List_Table {
 
     public function column_error_plugin( $item ) {
         return $item['error_plugin'];
+    }
+
+    public function column_error_severity( $item ) {
+        return $item['error_severity'];
     }
 
 	function get_bulk_actions() {
