@@ -246,6 +246,14 @@ class WP_Logger {
 		if( isset( $_POST['paged'] ) ) {
 			$_GET['paged'] = $_POST['paged'];
 		}
+
+		// This will copy values from the $_GET superglobal to the $POST superglobal which allows the use of the WP_List_Table class.
+		$copy_get = array( 'search', 'plugin-select', 'log-select' );
+		foreach( $copy_get as $do_copy ) {
+			if( isset( $_GET[ $do_copy ] ) ) {
+				$_POST[ $do_copy ] = $_GET[ $do_copy ];
+			}
+		}
 	}
 
 	/**
@@ -344,7 +352,7 @@ class WP_Logger {
 
 			<?php endif; ?>
 
-			<form method="post" id="logger-form" action="<?php echo admin_url( 'admin.php?page=wp_logger_errors' ); ?>">
+			<form method="POST" id="logger-form" action="<?php echo admin_url( 'admin.php?page=wp_logger_errors' ); ?>">
 				<?php wp_nonce_field( 'wp_logger_generate_report', 'wp_logger_form_nonce' ) ?>
 				<div id="col-container">
 					<div id="col-right">
