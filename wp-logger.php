@@ -247,7 +247,7 @@ class WP_Logger {
 			$_GET['paged'] = $_POST['paged'];
 		}
 
-		// This will copy values from the $_GET superglobal to the $POST superglobal which allows the use of the WP_List_Table class.
+		// This will copy values from the $_GET superglobal to the $_POST superglobal which allows the use of the WP_List_Table class.
 		$copy_get = array( 'search', 'plugin-select', 'log-select' );
 		foreach ( $copy_get as $do_copy ) {
 			if ( isset( $_GET[ $do_copy ] ) ) {
