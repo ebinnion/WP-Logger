@@ -101,7 +101,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 
 	/**
 	 * Sets the sortable columns for the WP Logger plugin.
-	 * 
+	 *
 	 * @return array $args {
 	 *     @string $error_severity Allows the severity column to be sorted.
 	 *     @string $error_plugin Allows the plugin name column to be sorted.
@@ -141,7 +141,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 
 	/**
 	 * Overrides WP_List_Table pagination method in order to modify the pagination links.
-	 * 
+	 *
 	 * @see WP_List_Table.
 	 */
 	function pagination( $which ) {
@@ -223,7 +223,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 
 	/**
 	 * Overrides the WP_List_Table print_column_headers method in order to modify the orderby links.
-	 * 
+	 *
 	 * @see WP_List_Table
 	 */
 	function print_column_headers( $with_id = true ) {
@@ -290,7 +290,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 
 	/**
 	 * Returns the value for the cb column.
-	 * 
+	 *
 	 * @param array $args {
 	 *     @int $id The ID for the current comment.
 	 *     @string $error_msg The value for the Error column.
@@ -298,7 +298,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 	 *     @string $error_plugin The value for the plugin name column.
 	 *     @string $error_date The value for the date the log entry was created.
 	 * }
-	 * 
+	 *
 	 * @return @string Checkbox for bulk edit functionality.
 	 */
 	public function column_cb( $item ) {
@@ -307,7 +307,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 
 	/**
 	 * Returns the value for the id column.
-	 * 
+	 *
 	 * @param array $args {
 	 *     @int $id The ID for the current comment.
 	 *     @string $error_msg The value for the Error column.
@@ -315,7 +315,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 	 *     @string $error_plugin The value for the plugin name column.
 	 *     @string $error_date The value for the date the log entry was created.
 	 * }
-	 * 
+	 *
 	 * @return @int The ID for the current comment.
 	 */
 	public function column_id( $item ) {
@@ -324,7 +324,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 
 	/**
 	 * Returns the value for the error_msg column.
-	 * 
+	 *
 	 * @param array $args {
 	 *     @int $id The ID for the current comment.
 	 *     @string $error_msg The value for the Error column.
@@ -332,7 +332,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 	 *     @string $error_plugin The value for the plugin name column.
 	 *     @string $error_date The value for the date the log entry was created.
 	 * }
-	 * 
+	 *
 	 * @return @string The error message for the current comment.
 	 */
 	public function column_error_msg( $item ) {
@@ -341,7 +341,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 
 	/**
 	 * Returns the value for the error_date column.
-	 * 
+	 *
 	 * @param array $args {
 	 *     @int $id The ID for the current comment.
 	 *     @string $error_msg The value for the Error column.
@@ -349,7 +349,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 	 *     @string $error_plugin The value for the plugin name column.
 	 *     @string $error_date The value for the date the log entry was created.
 	 * }
-	 * 
+	 *
 	 * @return @string Date the current entry was added.
 	 */
 	public function column_error_date( $item ) {
@@ -358,7 +358,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 
 	/**
 	 * Returns the value for the error_plugin column.
-	 * 
+	 *
 	 * @param array $args {
 	 *     @int $id The ID for the current comment.
 	 *     @string $error_msg The value for the Error column.
@@ -366,7 +366,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 	 *     @string $error_plugin The value for the plugin name column.
 	 *     @string $error_date The value for the date the log entry was created.
 	 * }
-	 * 
+	 *
 	 * @return @string The plugin which the current entry is assigned to.
 	 */
 	public function column_error_plugin( $item ) {
@@ -375,7 +375,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 
 	/**
 	 * Returns the value for the error_severity column.
-	 * 
+	 *
 	 * @param array $args {
 	 *     @int $id The ID for the current comment.
 	 *     @string $error_msg The value for the Error column.
@@ -383,7 +383,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 	 *     @string $error_plugin The value for the plugin name column.
 	 *     @string $error_date The value for the date the log entry was created.
 	 * }
-	 * 
+	 *
 	 * @return @int The severity for the current entry. Used for triaging errors.
 	 */
 	public function column_error_severity( $item ) {
@@ -392,7 +392,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 
 	/**
 	 * Returns a list of bulk actions used to create the bulk action select field.
-	 * 
+	 *
 	 * @return array $args {
 	 *     @string $delete The label of the delete action.
 	 * }

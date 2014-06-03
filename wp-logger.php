@@ -72,7 +72,7 @@ class WP_Logger {
 		$prefixed_term = $this->prefix_slug( $plugin_name );
 
 		// If there is not currently a term (category) for this plugin, create it.
-		if( ! term_exists( $prefixed_term, self::TAXONOMY ) ) {
+		if ( ! term_exists( $prefixed_term, self::TAXONOMY ) ) {
 
 			// Create a taxonomy term that distinguishes current plugin from others.
 			$registered = wp_insert_term(
@@ -84,7 +84,7 @@ class WP_Logger {
 			);
 
 			// Check if taxonomy term was succeessfully added and return if not.
-			if( is_wp_error( $registered ) ) {
+			if ( is_wp_error( $registered ) ) {
 				return false;
 			}
 		}
@@ -107,7 +107,7 @@ class WP_Logger {
 		 * If the log that the developer wants to write to exists, add a comment.
 		 * Else, create log then add comment.
 		 */
-		if( $log_exists->have_posts() ) {
+		if ( $log_exists->have_posts() ) {
 			$log_exists->the_post();
 			$post_id = $post->ID;
 
@@ -123,7 +123,7 @@ class WP_Logger {
 				)
 			);
 
-			if( 0 == $post_id ) {
+			if ( 0 == $post_id ) {
 				return false;
 			}
 
@@ -137,7 +137,7 @@ class WP_Logger {
 			 * A successful call to wp_set_post_terms will return an array. A failure could return
 			 * a WP_Error object, false, or a string.
 			 */
-			if( is_wp_error( $add_terms ) || false == $add_terms || ! is_array( $add_terms ) ) {
+			if ( is_wp_error( $add_terms ) || false == $add_terms || ! is_array( $add_terms ) ) {
 				return false;
 			}
 		}
@@ -222,15 +222,15 @@ class WP_Logger {
 		);
 
 		// Delete any error entries that were checked through the bulk action interface.
-		if( is_admin() && isset( $_GET['page'] ) ) {
+		if ( is_admin() && isset( $_GET['page'] ) ) {
 
-			if( 'wp_logger_errors' == $_GET['page'] && isset( $_POST['action'] ) && 'delete' == $_POST['action'] ) {
+			if ( 'wp_logger_errors' == $_GET['page'] && isset( $_POST['action'] ) && 'delete' == $_POST['action'] ) {
 
 				check_admin_referer( 'wp_logger_generate_report', 'wp_logger_form_nonce' );
 
-				if( ! empty( $_POST['logs'] ) ) {
+				if ( ! empty( $_POST['logs'] ) ) {
 
-					foreach( $_POST['logs'] as $log ) {
+					foreach ( $_POST['logs'] as $log ) {
 						wp_delete_comment( intval( $log ), true );
 					}
 				}
@@ -238,19 +238,19 @@ class WP_Logger {
 		}
 
 		// Condition for emailing logs. Logs are emailed as a JSON object.
-		if( isset( $_POST['send_logger_email'] ) ) {
+		if ( isset( $_POST['send_logger_email'] ) ) {
 			$this->process_email_log();
 		}
 
 		// Allows entering a page into the pagination input.
-		if( isset( $_POST['paged'] ) ) {
+		if ( isset( $_POST['paged'] ) ) {
 			$_GET['paged'] = $_POST['paged'];
 		}
 
 		// This will copy values from the $_GET superglobal to the $POST superglobal which allows the use of the WP_List_Table class.
 		$copy_get = array( 'search', 'plugin-select', 'log-select' );
-		foreach( $copy_get as $do_copy ) {
-			if( isset( $_GET[ $do_copy ] ) ) {
+		foreach ( $copy_get as $do_copy ) {
+			if ( isset( $_GET[ $do_copy ] ) ) {
 				$_POST[ $do_copy ] = $_GET[ $do_copy ];
 			}
 		}
@@ -260,7 +260,15 @@ class WP_Logger {
 	 * Adds a menu page to the WordPress admin with a title of Errors
 	 */
 	function add_menu_page() {
-		add_menu_page( esc_html__( 'Errors', 'wp-logger' ), esc_html__( 'Errors', 'wp-logger' ), 'update_core', 'wp_logger_errors', array( $this, 'generate_menu_page' ), 'dashicons-editor-help', 100 );
+		add_menu_page(
+			esc_html__( 'Errors', 'wp-logger' ),
+			esc_html__( 'Errors', 'wp-logger' ),
+			'update_core',
+			'wp_logger_errors',
+			array( $this, 'generate_menu_page' ),
+			'dashicons-editor-help',
+			100
+		);
 	}
 
 	/**
@@ -275,7 +283,7 @@ class WP_Logger {
 	function add_comment_author( $pieces, &$comment ) {
 		global $wpdb;
 
-		if( isset( $comment->query_vars['comment_author'] ) ) {
+		if ( isset( $comment->query_vars['comment_author'] ) ) {
 			$pieces['where'] .= $wpdb->prepare( ' AND comment_author = %s', $comment->query_vars['comment_author'] );
 		}
 
@@ -287,7 +295,7 @@ class WP_Logger {
 	 * acts as a flag to send logs to an email.
 	 */
 	function admin_footer() {
-		if( isset( $_GET['page'] ) && 'wp_logger_errors' == $_GET['page'] ) {
+		if ( isset( $_GET['page'] ) && 'wp_logger_errors' == $_GET['page'] ) {
 			?>
 
 			<script>
@@ -333,18 +341,18 @@ class WP_Logger {
 			<h2><?php esc_html_e( 'Errors', 'wp-logger' ); ?></h2>
 
 			<?php
-
 				/*
 				 * Check if email message was sent. If so, display a successful message on success or a
 				 * failure message on failure.
 				 */
-				if( isset( $_POST['message_sent'] ) && $_POST['message_sent'] ) : ?>
+			?>
+			<?php if ( isset( $_POST['message_sent'] ) && $_POST['message_sent'] ) : ?>
 
 				<div class="updated">
 					<p><?php esc_html_e( 'Your message was sent successfully!', 'wp-logger' ); ?></p>
 				</div>
 
-			<?php elseif( isset( $_POST['message_sent'] ) && ! $_POST['message_sent'] ) : ?>
+			<?php elseif ( isset( $_POST['message_sent'] ) && ! $_POST['message_sent'] ) : ?>
 
 				<div class="error">
 					<p><?php esc_html_e( 'Your message failed to send.', 'wp-logger' ); ?></p>
@@ -460,12 +468,12 @@ class WP_Logger {
 
 		$entries = $this->get_entries();
 
-		if( ! empty( $entries ) ) {
+		if ( ! empty( $entries ) ) {
 
 			// Build an array of just the data that needs to be sent to the developer.
 			$data = array();
 
-			foreach( $entries['entries'] as $entry ){
+			foreach ( $entries['entries'] as $entry ){
 
 				$data[] = array(
 					'id'             => $entry->comment_ID,
@@ -493,7 +501,7 @@ class WP_Logger {
 				 * If the JSON file was created successfully, then let's send that as an attachment.
 				 * If the file was no created successfully, then attempt to send the logs directly within the email message.
 				 */
-				if( false !== $file ) {
+				if ( false !== $file ) {
 					fwrite( $file, json_encode( $data ) );
 
 					$_POST['message_sent'] = wp_mail(
@@ -550,7 +558,7 @@ class WP_Logger {
 		 */
 		$plugin_emails = apply_filters( 'wp_logger_author_email', array() );
 
-		if( isset( $plugin_emails[ $plugin_name ] ) ) {
+		if ( isset( $plugin_emails[ $plugin_name ] ) ) {
 			return sanitize_email( $plugin_emails[ $plugin_name ] );
 		} else {
 			return '';
@@ -583,7 +591,7 @@ class WP_Logger {
 				$args['orderby'] = 'user_id';
 			}
 
-			if( isset( $_GET['order'] ) ) {
+			if ( isset( $_GET['order'] ) ) {
 				$args['order'] = $_GET['order'];
 			} else {
 				$args['order'] = 'desc';
@@ -613,13 +621,13 @@ class WP_Logger {
 		$args['count'] = false;
 
 		// If sending an email of logs, then return as many entries as possible.
-		if( ! isset( $_POST['send_logger_email'] ) ) {
+		if ( ! isset( $_POST['send_logger_email'] ) ) {
 
 			// Get up to 20 of entries that match parameters.
 			$args['number'] = 20;
 
 			// Update the offset value based on what page query is running on.
-			if( isset( $_GET['paged'] ) && intval( $_GET['paged'] ) > 1 ) {
+			if ( isset( $_GET['paged'] ) && intval( $_GET['paged'] ) > 1 ) {
 				$args['offset'] = ( intval( $_GET['paged'] ) - 1 ) * 20;
 			}
 		}
@@ -637,7 +645,7 @@ class WP_Logger {
 	 * @return false|WP_Query False if no $plugin_term is passed or WP_Query object containing the posts for this plugin.
 	 */
 	private function get_logs( $plugin_term ) {
-		if( ! $plugin_term ) {
+		if ( ! $plugin_term ) {
 			return false;
 		}
 
