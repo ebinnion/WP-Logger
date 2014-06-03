@@ -360,7 +360,7 @@ class WP_Logger {
 
 			<?php endif; ?>
 
-			<form method="POST" id="logger-form" action="<?php echo admin_url( 'admin.php?page=wp_logger_errors' ); ?>">
+			<form method="post" id="logger-form" action="<?php echo admin_url( 'admin.php?page=wp_logger_errors' ); ?>">
 				<?php wp_nonce_field( 'wp_logger_generate_report', 'wp_logger_form_nonce' ) ?>
 				<div id="col-container">
 					<div id="col-right">
