@@ -13,7 +13,7 @@
 class WP_Logger {
 
 	/**
-	 * Memeber data for ensuring singleton pattern
+	 * Member data for ensuring singleton pattern
 	 */
 	private static $instance = null;
 
