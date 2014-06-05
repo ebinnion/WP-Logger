@@ -304,8 +304,8 @@ class WP_Logger {
 	}
 
 	/**
-	 * Adds a hidden input field to the wp_logger_messages page and then submits the form. The hiddne field
-	 * acts as a flag to send logs to an email.
+	 * Adds a hidden input field to the wp_logger_messages page and then submits the form. The hidden field
+	 * acts as a flag to send logs to an email. Also, will remove log select from pagewhen plugin select value is changed.
 	 */
 	function admin_footer() {
 		if ( isset( $_GET['page'] ) && 'wp_logger_messages' == $_GET['page'] ) {
@@ -313,11 +313,21 @@ class WP_Logger {
 
 			<script>
 				(function( $ ) {
+					var pluginSelect = $( '#plugin-select' ),
+						pluginSelectVal = pluginSelect.val();
+
+					pluginSelect.change( function(){
+						if( pluginSelectVal !== pluginSelect.val() ) {
+							$( '#log-select' ).parents( '.form-field' ).remove();
+						}
+					});
+
 					$( '#send-logger-email' ).click( function(){
 						var form = $( '#logger-form' );
 						form.prepend( '<input type="hidden" name="send_logger_email" value="1" >' );
 						form.submit();
 					});
+
 				})( jQuery );
 			</script>
 
