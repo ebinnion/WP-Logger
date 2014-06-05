@@ -70,3 +70,44 @@ This functionality could potentially be implemented on the `register_deactivatio
 ```php
 do_action( 'wp_logger_purge', $plugin_slug );
 ```
+
+### Sample Plugin
+
+Below is a sample plugin that demonstrates how to log messages, register a developer email, purge logs, and check whether 
+WP Logger is installed by getting the current WP Logger version number.
+
+```php
+<?php
+/**
+ * Plugin Name: WP Logger Test
+ * Plugin URI: http://automattic.com
+ * Description: Acts as a test driver for the WP Logger plugin.
+ * Version: 0.1
+ * Author: Eric Binnion
+ * Author URI: http://manofhustle.com
+ * License: GPLv2 or later
+ */
+
+add_action( 'init', 'wp_logger_test_add' );
+function wp_logger_test_add() {
+
+	$wp_logger_version = apply_filters( 'wp_logger_version', false );
+
+	if( false == $wp_logger_version ) {
+		// echo "Logger version is false";
+	}
+
+	do_action( 'wp_logger_add', 'wp-logger-test', 'message', 'Hello World!', 6 );
+}
+
+add_filter( 'wp_logger_author_email', 'wp_logger_add_test_email' );
+function wp_logger_add_test_email( $emails ) {
+	$emails['wp-logger-test'] = 'developer@gmail.com';
+	return $emails;
+}
+
+register_deactivation_hook( __FILE__, 'wp_logger_purge_logs' );
+function wp_logger_purge_logs() {
+	do_action( 'wp_logger_purge', 'wp-logger-test' );
+}
+```
