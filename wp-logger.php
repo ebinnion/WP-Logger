@@ -151,7 +151,7 @@ class WP_Logger {
 			 * A successful call to wp_set_post_terms will return an array. A failure could return
 			 * a WP_Error object, false, or a string.
 			 */
-			if ( is_wp_error( $add_terms ) || false == $add_terms || ! is_array( $add_terms ) ) {
+			if ( ! is_array( $add_terms ) ) {
 				return false;
 			}
 		}
