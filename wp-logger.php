@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WP Logger
  * Plugin URI: http://automattic.com
- * Description: Provides an interface to log errors and actions within a WordPress installation.
+ * Description: Provides an interface to log errors, messages, and actions within a WordPress installation.
  * Version: 0.1
  * Author: Eric Binnion
  * Author URI: http://manofhustle.com
@@ -20,7 +20,7 @@ class WP_Logger {
 	/**
 	 * Constant for the WP Logger taxonomy
 	 */
-	const TAXONOMY = 'plugin-errors';
+	const TAXONOMY = 'plugin-messages';
 
 	/**
 	 * Constant for the WP Logger custom post type
@@ -160,7 +160,7 @@ class WP_Logger {
 	}
 
 	/**
-	 * Register the wp-logger post type and plugin-errors taxonomy. Also, process bulk delete action and log mailing.
+	 * Register the wp-logger post type and plugin-messages taxonomy. Also, process bulk delete action and log mailing.
 	 */
 	function init() {
 		register_post_type(
@@ -216,7 +216,6 @@ class WP_Logger {
 			array(
 				'labels'            => $labels,
 				'show_in_nav_menus' => true,
-				'show_ui'           => true,
 				'query_var'         => true,
 			)
 		);
@@ -670,7 +669,7 @@ class WP_Logger {
 	}
 
 	/**
-	 * Retrieves the terms (plugins) for the plugin-errors taxonomy.
+	 * Retrieves the terms (plugins) for the plugin-messages taxonomy.
 	 *
 	 * @return array. An array of term objects.
 	 */
