@@ -45,6 +45,7 @@ class WP_Logger {
 		add_filter( 'wp_logger_version', array( $this, 'set_wp_logger_version' ) );
 		add_filter( 'comments_clauses',  array( $this, 'add_comment_author' ), 10, 2 );
 		add_action( 'wp_logger_add',     array( $this, 'add_entry' ), 10, 4  );
+		add_action( 'wp_logger_purge',   array( $this, 'purge_plugin_logs' ) );
 	}
 
 	/**
@@ -55,6 +56,19 @@ class WP_Logger {
 	 */
 	function set_wp_logger_version( $version ) {
 		return '0.1';
+	}
+
+	/**
+	 * Callback function for 'wp_logger_purge' that will delete all log entries (comments) for a given plugin.
+	 *
+	 * @param  string $plugin_name The plugins's slug.
+	 */
+	function purge_plugin_logs( $plugin_name ) {
+		global $wpdb;
+
+		$wpdb->query(
+			$wpdb->prepare( "DELETE FROM $wpdb->comments WHERE comment_approved = %s AND comment_author = %s", self::CPT, $plugin_name )
+		);
 	}
 
 	/**
