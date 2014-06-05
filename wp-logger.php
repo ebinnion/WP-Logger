@@ -429,7 +429,11 @@ class WP_Logger {
 
 						<?php endif; ?>
 
-						<button class="button button-primary"><?php esc_html_e( 'Generate Report', 'wp-logger' ); ?></button>
+						<p>
+							<button class="button button-primary">
+								<?php esc_html_e( 'Generate Report', 'wp-logger' ); ?>
+							</button>
+						</p>
 
 						<p>
 							<hr>
