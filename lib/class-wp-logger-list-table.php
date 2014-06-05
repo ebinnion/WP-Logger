@@ -25,8 +25,8 @@ class WP_Logger_List_Table extends WP_List_Table {
 
 		parent::__construct(
 			array(
-				'singular'  => esc_html__( 'Error', 'wp-logger' ),
-				'plural'    => esc_html__( 'Errors', 'wp-logger' ),
+				'singular'  => esc_html__( 'log', 'wp-logger' ),
+				'plural'    => esc_html__( 'logs', 'wp-logger' ),
 				'ajax'      => false
 			)
 		);
@@ -72,19 +72,19 @@ class WP_Logger_List_Table extends WP_List_Table {
 	 *
 	 * @return array $args {
 	 *     @string $cb Adds a checkbox to the table that is used for bulk actions.
-	 *     @string $error_msg The label for the Error column.
-	 *     @string $error_severity The label for the Severity column.
-	 *     @string $error_plugin The label for the plugin name column.
-	 *     @string $error_date The label for the date the log entry was created.
+	 *     @string $log_msg The label for the log column.
+	 *     @string $log_severity The label for the Severity column.
+	 *     @string $log_plugin The label for the plugin name column.
+	 *     @string $log_date The label for the date the log entry was created.
 	 * }
 	 */
 	public function get_columns() {
 		$columns = array(
 			'cb'             => '<input type="checkbox" />',
-			'error_msg'      => esc_html__( 'Error Message', 'wp-logger' ),
-			'error_severity' => esc_html__( 'Severity', 'wp-logger' ),
-			'error_plugin'   => esc_html__( 'Plugin', 'wp-logger' ),
-			'error_date'     => esc_html__( 'Date', 'wp-logger' ),
+			'log_msg'      => esc_html__( 'Log Message', 'wp-logger' ),
+			'log_severity' => esc_html__( 'Severity', 'wp-logger' ),
+			'log_plugin'   => esc_html__( 'Plugin', 'wp-logger' ),
+			'log_date'     => esc_html__( 'Date', 'wp-logger' ),
 
 		);
 
@@ -103,16 +103,16 @@ class WP_Logger_List_Table extends WP_List_Table {
 	 * Sets the sortable columns for the WP Logger plugin.
 	 *
 	 * @return array $args {
-	 *     @string $error_severity Allows the severity column to be sorted.
-	 *     @string $error_plugin Allows the plugin name column to be sorted.
-	 *     @string $error_date Allows the date column to be sorted.
+	 *     @string $log_severity Allows the severity column to be sorted.
+	 *     @string $log_plugin Allows the plugin name column to be sorted.
+	 *     @string $log_date Allows the date column to be sorted.
 	 * }
 	 */
 	public function get_sortable_columns() {
 		return array(
-			'error_severity' => array( 'error_severity', false ),
-			'error_plugin'   => array( 'error_plugin', false ),
-			'error_date'     => array( 'error_date', false ),
+			'log_severity' => array( 'log_severity', false ),
+			'log_plugin'   => array( 'log_plugin', false ),
+			'log_date'     => array( 'log_date', false ),
 		);
 	}
 
@@ -128,10 +128,10 @@ class WP_Logger_List_Table extends WP_List_Table {
 			foreach ( $this->items as $item ) {
 				$data[] = array(
 					'id'            => $item->comment_ID,
-					'error_severity'=> $item->user_id,
-					'error_msg'     => $item->comment_content,
-					'error_date'    => $item->comment_date,
-					'error_plugin'  => $item->comment_author,
+					'log_severity'=> $item->user_id,
+					'log_msg'     => $item->comment_content,
+					'log_date'    => $item->comment_date,
+					'log_plugin'  => $item->comment_author,
 				);
 			}
 		}
@@ -293,10 +293,10 @@ class WP_Logger_List_Table extends WP_List_Table {
 	 *
 	 * @param array $args {
 	 *     @int $id The ID for the current comment.
-	 *     @string $error_msg The value for the Error column.
-	 *     @string $error_severity The value for the Severity column.
-	 *     @string $error_plugin The value for the plugin name column.
-	 *     @string $error_date The value for the date the log entry was created.
+	 *     @string $log_msg The value for the log column.
+	 *     @string $log_severity The value for the Severity column.
+	 *     @string $log_plugin The value for the plugin name column.
+	 *     @string $log_date The value for the date the log entry was created.
 	 * }
 	 *
 	 * @return @string Checkbox for bulk edit functionality.
@@ -310,10 +310,10 @@ class WP_Logger_List_Table extends WP_List_Table {
 	 *
 	 * @param array $args {
 	 *     @int $id The ID for the current comment.
-	 *     @string $error_msg The value for the Error column.
-	 *     @string $error_severity The value for the Severity column.
-	 *     @string $error_plugin The value for the plugin name column.
-	 *     @string $error_date The value for the date the log entry was created.
+	 *     @string $log_msg The value for the log column.
+	 *     @string $log_severity The value for the Severity column.
+	 *     @string $log_plugin The value for the plugin name column.
+	 *     @string $log_date The value for the date the log entry was created.
 	 * }
 	 *
 	 * @return @int The ID for the current comment.
@@ -323,71 +323,71 @@ class WP_Logger_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Returns the value for the error_msg column.
+	 * Returns the value for the log_msg column.
 	 *
 	 * @param array $args {
 	 *     @int $id The ID for the current comment.
-	 *     @string $error_msg The value for the Error column.
-	 *     @string $error_severity The value for the Severity column.
-	 *     @string $error_plugin The value for the plugin name column.
-	 *     @string $error_date The value for the date the log entry was created.
+	 *     @string $log_msg The value for the log column.
+	 *     @string $log_severity The value for the Severity column.
+	 *     @string $log_plugin The value for the plugin name column.
+	 *     @string $log_date The value for the date the log entry was created.
 	 * }
 	 *
-	 * @return @string The error message for the current comment.
+	 * @return @string The log message for the current comment.
 	 */
-	public function column_error_msg( $item ) {
-		return $item['error_msg'];
+	public function column_log_msg( $item ) {
+		return $item['log_msg'];
 	}
 
 	/**
-	 * Returns the value for the error_date column.
+	 * Returns the value for the log_date column.
 	 *
 	 * @param array $args {
 	 *     @int $id The ID for the current comment.
-	 *     @string $error_msg The value for the Error column.
-	 *     @string $error_severity The value for the Severity column.
-	 *     @string $error_plugin The value for the plugin name column.
-	 *     @string $error_date The value for the date the log entry was created.
+	 *     @string $log_msg The value for the log column.
+	 *     @string $log_severity The value for the Severity column.
+	 *     @string $log_plugin The value for the plugin name column.
+	 *     @string $log_date The value for the date the log entry was created.
 	 * }
 	 *
 	 * @return @string Date the current entry was added.
 	 */
-	public function column_error_date( $item ) {
-		return $item['error_date'];
+	public function column_log_date( $item ) {
+		return $item['log_date'];
 	}
 
 	/**
-	 * Returns the value for the error_plugin column.
+	 * Returns the value for the log_plugin column.
 	 *
 	 * @param array $args {
 	 *     @int $id The ID for the current comment.
-	 *     @string $error_msg The value for the Error column.
-	 *     @string $error_severity The value for the Severity column.
-	 *     @string $error_plugin The value for the plugin name column.
-	 *     @string $error_date The value for the date the log entry was created.
+	 *     @string $log_msg The value for the log column.
+	 *     @string $log_severity The value for the Severity column.
+	 *     @string $log_plugin The value for the plugin name column.
+	 *     @string $log_date The value for the date the log entry was created.
 	 * }
 	 *
 	 * @return @string The plugin which the current entry is assigned to.
 	 */
-	public function column_error_plugin( $item ) {
-		return $item['error_plugin'];
+	public function column_log_plugin( $item ) {
+		return $item['log_plugin'];
 	}
 
 	/**
-	 * Returns the value for the error_severity column.
+	 * Returns the value for the log_severity column.
 	 *
 	 * @param array $args {
 	 *     @int $id The ID for the current comment.
-	 *     @string $error_msg The value for the Error column.
-	 *     @string $error_severity The value for the Severity column.
-	 *     @string $error_plugin The value for the plugin name column.
-	 *     @string $error_date The value for the date the log entry was created.
+	 *     @string $log_msg The value for the log column.
+	 *     @string $log_severity The value for the Severity column.
+	 *     @string $log_plugin The value for the plugin name column.
+	 *     @string $log_date The value for the date the log entry was created.
 	 * }
 	 *
-	 * @return @int The severity for the current entry. Used for triaging errors.
+	 * @return @int The severity for the current entry. Used for triaging logs.
 	 */
-	public function column_error_severity( $item ) {
-		return $item['error_severity'];
+	public function column_log_severity( $item ) {
+		return $item['log_severity'];
 	}
 
 	/**

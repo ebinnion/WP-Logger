@@ -72,7 +72,7 @@ class WP_Logger {
 	}
 
 	/**
-	 * Exposes a method to allow developers to log an error.
+	 * Exposes a method to allow developers to log a message.
 	 *
 	 * @global WP_Post $post The global WP_Post object.
 	 *
@@ -186,16 +186,16 @@ class WP_Logger {
 				'menu_position' => 100,
 				'supports'      => false,
 				'labels'        => array(
-					'name'               => esc_html__( 'Errors'                  , 'wp-logger' ),
-					'singular_name'      => esc_html__( 'Error'                   , 'wp-logger' ),
-					'add_new'            => esc_html__( 'Add New Error'           , 'wp-logger' ),
-					'add_new_item'       => esc_html__( 'Add New Error'           , 'wp-logger' ),
-					'edit_item'          => esc_html__( 'Edit Error'              , 'wp-logger' ),
-					'new_item'           => esc_html__( 'Add New Error'           , 'wp-logger' ),
-					'view_item'          => esc_html__( 'View Error'              , 'wp-logger' ),
-					'search_items'       => esc_html__( 'Search Errors'           , 'wp-logger' ),
-					'not_found'          => esc_html__( 'No errors found'         , 'wp-logger' ),
-					'not_found_in_trash' => esc_html__( 'No errors found in trash', 'wp-logger' )
+					'name'               => esc_html__( 'Logs'                  , 'wp-logger' ),
+					'singular_name'      => esc_html__( 'Log'                   , 'wp-logger' ),
+					'add_new'            => esc_html__( 'Add New Log'           , 'wp-logger' ),
+					'add_new_item'       => esc_html__( 'Add New Log'           , 'wp-logger' ),
+					'edit_item'          => esc_html__( 'Edit Log'              , 'wp-logger' ),
+					'new_item'           => esc_html__( 'Add New Log'           , 'wp-logger' ),
+					'view_item'          => esc_html__( 'View Log'              , 'wp-logger' ),
+					'search_items'       => esc_html__( 'Search Logs'           , 'wp-logger' ),
+					'not_found'          => esc_html__( 'No logs found'         , 'wp-logger' ),
+					'not_found_in_trash' => esc_html__( 'No logs found in trash', 'wp-logger' )
 				),
 				'capabilities' => array(
 					'edit_post'          => 'update_core',
@@ -234,10 +234,10 @@ class WP_Logger {
 			)
 		);
 
-		// Delete any error entries that were checked through the bulk action interface.
+		// Delete any entries that were checked through the bulk action interface.
 		if ( is_admin() && isset( $_GET['page'] ) ) {
 
-			if ( 'wp_logger_errors' == $_GET['page'] && isset( $_POST['action'] ) && 'delete' == $_POST['action'] ) {
+			if ( 'wp_logger_messages' == $_GET['page'] && isset( $_POST['action'] ) && 'delete' == $_POST['action'] ) {
 
 				check_admin_referer( 'wp_logger_generate_report', 'wp_logger_form_nonce' );
 
@@ -270,14 +270,14 @@ class WP_Logger {
 	}
 
 	/**
-	 * Adds a menu page to the WordPress admin with a title of Errors
+	 * Adds a menu page to the WordPress admin with a title of Plugin Logs
 	 */
 	function add_menu_page() {
 		add_menu_page(
-			esc_html__( 'Errors', 'wp-logger' ),
-			esc_html__( 'Errors', 'wp-logger' ),
+			esc_html__( 'Plugin Logs', 'wp-logger' ),
+			esc_html__( 'Plugin Logs', 'wp-logger' ),
 			'update_core',
-			'wp_logger_errors',
+			'wp_logger_messages',
 			array( $this, 'generate_menu_page' ),
 			'dashicons-editor-help',
 			100
@@ -304,11 +304,11 @@ class WP_Logger {
 	}
 
 	/**
-	 * Adds a hidden input field to the wp_logger_errors page and then submits the form. The hiddne field
+	 * Adds a hidden input field to the wp_logger_messages page and then submits the form. The hiddne field
 	 * acts as a flag to send logs to an email.
 	 */
 	function admin_footer() {
-		if ( isset( $_GET['page'] ) && 'wp_logger_errors' == $_GET['page'] ) {
+		if ( isset( $_GET['page'] ) && 'wp_logger_messages' == $_GET['page'] ) {
 			?>
 
 			<script>
@@ -326,7 +326,7 @@ class WP_Logger {
 	}
 
 	/**
-	 * Outputs the errors menu page.
+	 * Outputs the Plugin Messages menu page.
 	 *
 	 * @global WP_Post $post The global WP_Post object.
 	 *
@@ -351,7 +351,7 @@ class WP_Logger {
 		?>
 
 		<div class="wrap">
-			<h2><?php esc_html_e( 'Errors', 'wp-logger' ); ?></h2>
+			<h2><?php esc_html_e( 'Plugin Logs', 'wp-logger' ); ?></h2>
 
 			<?php
 				/*
@@ -373,7 +373,7 @@ class WP_Logger {
 
 			<?php endif; ?>
 
-			<form method="post" id="logger-form" action="<?php echo admin_url( 'admin.php?page=wp_logger_errors' ); ?>">
+			<form method="post" id="logger-form" action="<?php echo admin_url( 'admin.php?page=wp_logger_messages' ); ?>">
 				<?php wp_nonce_field( 'wp_logger_generate_report', 'wp_logger_form_nonce' ) ?>
 				<div id="col-container">
 					<div id="col-right">
@@ -387,7 +387,7 @@ class WP_Logger {
 					</div>
 
 					<div id="col-left">
-						<h3><?php esc_html_e( 'Generate Error Report', 'wp-logger' ); ?></h3>
+						<h3><?php esc_html_e( 'Generate Log Report', 'wp-logger' ); ?></h3>
 
 						<div class="form-field">
 							<label for="search"><?php esc_html_e( 'Search', 'wp-logger' ); ?></label>
@@ -411,7 +411,7 @@ class WP_Logger {
 										?>
 									</select>
 									<br />
-									<?php esc_html_e( 'Select a plugin to view errors for.', 'wp-logger' ); ?>
+									<?php esc_html_e( 'Select a plugin to view logs for.', 'wp-logger' ); ?>
 								</p>
 							</div>
 
@@ -494,10 +494,10 @@ class WP_Logger {
 
 				$data[] = array(
 					'id'             => $entry->comment_ID,
-					'error_severity' => $entry->user_id,
-					'error_msg'      => $entry->comment_content,
-					'error_date'     => $entry->comment_date,
-					'error_plugin'   => $entry->comment_author,
+					'log_severity' => $entry->user_id,
+					'log_msg'      => $entry->comment_content,
+					'log_date'     => $entry->comment_date,
+					'log_plugin'   => $entry->comment_author,
 				);
 			}
 
@@ -600,11 +600,11 @@ class WP_Logger {
 
 		if ( isset( $_GET['orderby'] ) ) {
 
-			if ( 'error_plugin' == $_GET['orderby'] ) {
+			if ( 'log_plugin' == $_GET['orderby'] ) {
 				$args['orderby'] = 'comment_author';
-			} else if ( 'error_date' == $_GET['orderby'] ) {
+			} else if ( 'log_date' == $_GET['orderby'] ) {
 				$args['orderby'] = 'comment_date';
-			} else if ( 'error_severity' == $_GET['orderby'] ) {
+			} else if ( 'log_severity' == $_GET['orderby'] ) {
 				$args['orderby'] = 'user_id';
 			}
 
