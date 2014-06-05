@@ -94,20 +94,25 @@ function wp_logger_test_add() {
 	$wp_logger_version = apply_filters( 'wp_logger_version', false );
 
 	if( false == $wp_logger_version ) {
-		// echo "Logger version is false";
+		// WP Logger is not installed
 	}
 
+	// Used to log 'Hello World!' to a log named message with a severity of 6.
 	do_action( 'wp_logger_add', 'wp-logger-test', 'message', 'Hello World!', 6 );
 }
 
 add_filter( 'wp_logger_author_email', 'wp_logger_add_test_email' );
 function wp_logger_add_test_email( $emails ) {
+
+	// Registers `developer@gmail.com` for the `wp-logger-test` plugin.
 	$emails['wp-logger-test'] = 'developer@gmail.com';
 	return $emails;
 }
 
 register_deactivation_hook( __FILE__, 'wp_logger_purge_logs' );
 function wp_logger_purge_logs() {
+
+	// Delete all log entries for the `wp-logger-test` plugin.
 	do_action( 'wp_logger_purge', 'wp-logger-test' );
 }
 ```
