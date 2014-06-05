@@ -26,7 +26,10 @@ Using this plugin when needed should result in quicker issue resolution and less
 
 ## For Plugin Developers
 
-### Registering Developer email
+The following are examples for plugin developers.
+
+### Registering Developer Email
+
 WP Logger allows plugin developers to register an email that users can then send logs to. This serves to simplify the process of getting information from users. Below is an example of registering an email:
 
 ```php
@@ -38,6 +41,7 @@ function add_logger_plugin_email( $emails ) {
 ```
 
 ### Retrieving WP Logger Version Number
+
 You can retrieve the current WP Logger version number, and check if WP Logger is installed, by using the following:
 
 ```php
@@ -51,64 +55,18 @@ if( $wp_logger_version ) {
 
 ### Logging Errors/Messages/Etc.
 
-There are two ways that developers may log messages with the WP Logger plugin. The simpler, and preferred, method would be to use the WordPress Hook API.
-
-#### Using the WordPress Hook API
-WP Logger hooks the `WP_Logger:add_entry()` function onto the `wp_logger_add` action. This means that you only need to add this one line of code wherever you would like to log an entry:
+WP Logger hooks the `WP_Logger::add_entry()` method onto the `wp_logger_add` action. This means that you only need to add this one line of code wherever you would like to log an entry:
 
 ```php
 do_action( 'wp_logger_add', $plugin_slug, $log_name, $message, $severity );
 ```
 
-#### Using the Global WP_Logger instantiation
-Because it is not guaranteed that users of this plugin will have WP Logger installed, you should check to see if the WP Logger plugin is installed before making any entries.
+### Purge Plugin Messages
 
-The function below simplifies the process of using WP Logger with your plugin. To customize this plugin to your needs, all you need to do is:
+Because each log entry is stored as a comment, it is advisable that your plugin only log entries as necessary and purge entries when no longer needed.
 
-1. Prefix the function with something unique to your plugin.
-2. Change the plugin slug that is called within `add_entry()`.
+This functionality could potentially be implemented on the `register_deactivation_hook` of your plugin or after a user clicks a purge button in your plugin's settings page.
 
 ```php
-<?php
-function prefix_log_message(  $message = '', $log = 'message', $severity = 1 ) {
-	if( isset( $GLOBALS['wp_logger'] ) ) {
-		return $GLOBALS['wp_logger']->add_entry( 'wp-logger-test', $log, $message );
-	} else {
-		return false;
-	}
-}
-```
-
-From there, the only thing you need to do is call `prefix_log_message( $message, $log, $severity );` where:
-
-- `$message` is the messsage that you would like to log.
-- `$log` is the unique identifier for the type of log you would like to add the message to.
-	- For example, you could create an `error` log or and `api-callback` log.
-- `$severity` is an integer that describes what priority this entry should have.
-
-Here is a class based example:
-
-```php
-class Sample {
-	function __construct() {
-		add_action( 'init', 'log_sample_message' );
-	}
-
-	function prefix_log_message(  $message = '', $log = 'message', $severity = 1 ) {
-		if( isset( $GLOBALS['wp_logger'] ) ) {
-			return $GLOBALS['wp_logger']->add_entry( 'wp-logger-test', $log, $message );
-		} else {
-			return false;
-		}
-	}
-
-	function log_sample_message() {
-
-		/*
-		 * Logs an entry to plugin `your-plugin-slug` with message of `I am a message`
-		 * in the errors log with a severity of 10
-		 */
-		$this->prefix_log_message( 'I am a message', 'errors', 10 );
-	}
-}
+do_action( 'wp_logger_purge', $plugin_slug );
 ```
