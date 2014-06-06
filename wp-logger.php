@@ -576,20 +576,11 @@ class WP_Logger {
 	private function get_plugin_email( $plugin_name ) {
 
 		/**
-		 * Allows plugin developers to register their email by using a filter.
+		 * Allows plugin developers to register their email by using a filter..
 		 *
-		 * Plugin developers can register an email by adding a key => value pair into the array
-		 * where the key is the plugin's slug and the value is the developer's email address.
-		 *
-		 * @param array Empty array.
+		 * @param string Empty string
 		 */
-		$plugin_emails = apply_filters( 'wp_logger_author_email', array() );
-
-		if ( isset( $plugin_emails[ $plugin_name ] ) ) {
-			return sanitize_email( $plugin_emails[ $plugin_name ] );
-		} else {
-			return '';
-		}
+		return apply_filters( "wp_logger_author_email_{$plugin_name}", '' );
 	}
 
 	/**
