@@ -61,14 +61,22 @@ class WP_Logger {
 	/**
 	 * Callback function for 'wp_logger_purge' that will delete all log entries (comments) for a given plugin.
 	 *
+	 * @global $post Global WP_Post object.
+	 *
 	 * @param  string $plugin_name The plugins's slug.
 	 */
 	function purge_plugin_logs( $plugin_name ) {
-		global $wpdb;
+		global $post;
 
-		$wpdb->query(
-			$wpdb->prepare( "DELETE FROM $wpdb->comments WHERE comment_approved = %s AND comment_author = %s", self::CPT, $plugin_name )
-		);
+		$logs = $this->get_logs( $plugin_name );
+
+		if ( $logs->have_posts() ) {
+			while ( $logs->have_posts() ) {
+				$logs->the_post();
+
+				wp_delete_post( $post->ID, true );
+			}
+		}
 	}
 
 	/**
