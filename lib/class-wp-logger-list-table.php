@@ -68,6 +68,14 @@ class WP_Logger_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Overrides parent class in order to no set the 'fixed' class for the <table> tag.
+	 * @return array Of Classes to apply to <table> tag.
+	 */
+	function get_table_classes() {
+		return array( 'widefat', $this->_args['plural'] );
+	}
+
+	/**
 	 * Sets column ids and labels.
 	 *
 	 * @return array $args {
