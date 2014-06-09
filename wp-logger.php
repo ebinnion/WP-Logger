@@ -312,24 +312,91 @@ class WP_Logger {
 			?>
 
 			<script>
-				(function( $ ) {
-					var pluginSelect = $( '#plugin-select' ),
-						pluginSelectVal = pluginSelect.val();
+				/* global wpCookies */
 
-					pluginSelect.change( function(){
+				(function( $ ) {
+					var pluginSelect    = $( '#plugin-select' ),
+						pluginSelectVal = pluginSelect.val(),
+						loggerForm      = $( '#logger-form' ),
+						wrap            = $( '.wrap' );
+
+					/*
+					 If a user is currently viewing a log for a plugin, and the user
+					 selects a different plugin, the remove the log select.
+					 */
+					pluginSelect.change( function() {
 						if( pluginSelectVal !== pluginSelect.val() ) {
 							$( '#log-select' ).parents( '.form-field' ).remove();
 						}
 					});
 
-					$( '#send-logger-email' ).click( function(){
-						var form = $( '#logger-form' );
-						form.prepend( '<input type="hidden" name="send_logger_email" value="1" >' );
-						form.submit();
+					$( '#send-logger-email' ).click( function() {
+						loggerForm.prepend( '<input type="hidden" name="send_logger_email" value="1" >' );
+						loggerForm.submit();
+					});
+
+					// Adds the functionality for hiding the generate log report form.
+					$( '.wp-logger-collapse' ).click( function() {
+						wrap.toggleClass( 'hide-form' );
+
+						$( '.wp-logger-collapse' ).toggleClass( 'hidden' );
+
+						// Delete the `wp_logger_hide_form` cookie if the user has form showing.
+						if ( wrap.hasClass( 'hide-form' ) ) {
+							wpCookies.set( 'wp_logger_hide_form', '1', 604800 );
+						} else {
+							wpCookies.remove( 'wp_logger_hide_form', '' );
+						}
 					});
 
 				})( jQuery );
 			</script>
+
+			<style>
+				td:nth-child( 2 ) {
+					width: 50%!important;
+				}
+
+				td:nth-child( 3 ) {
+					width: 5%!important;
+					text-align: center;
+				}
+
+				@media only screen and (min-width: 769px) {
+					#col-right {
+						width: 75%!important;
+					}
+
+					#col-left {
+						width: 25%!important;
+					}
+
+					.wp-logger-collapse {
+						color: #999;
+						font-size: .5em;
+						cursor: pointer;
+					}
+
+					/* Controls which phrase shows for toggling report forms by page title */
+					.wp-logger-collapse.hidden {
+						display: none;
+					}
+
+					/* Controls the display when hiding the report form */
+					.hide-form .col-wrap {
+						padding-left: 0;
+					}
+
+					.hide-form #col-right {
+						width: 100%!important;
+					}
+
+					.hide-form #col-left {
+						display: none;
+						width: 0!important;
+					}
+				}
+			</style>
 
 			<?php
 		}
@@ -350,6 +417,17 @@ class WP_Logger {
 		$plugin_select = isset( $_POST['plugin-select'] ) ? $_POST['plugin-select'] : false;
 		$log_id        = isset( $_POST['log-select'] ) ? $_POST['log-select'] : false;
 		$search        = isset( $_POST['search'] ) ? $_POST['search'] : '';
+		$hide_form     = isset( $_COOKIE['wp_logger_hide_form'] ) ? 'hide-form' : '';
+
+		if ( isset( $_COOKIE['wp_logger_hide_form'] ) ) {
+			$wrap_class          = 'hide-form';
+			$collapse_form_class = 'hidden';
+			$show_form_class     = '';
+		} else {
+			$wrap_class          = '';
+			$collapse_form_class = '';
+			$show_form_class     = 'hidden';
+		}
 
 		$logs          = $this->get_logs( $plugin_select );
 		$entries       = $this->get_entries();
@@ -360,8 +438,12 @@ class WP_Logger {
 
 		?>
 
-		<div class="wrap">
-			<h2><?php esc_html_e( 'Plugin Logs', 'wp-logger' ); ?></h2>
+		<div class="wrap <?php echo $wrap_class ?>">
+			<h2>
+				<?php esc_html_e( 'Plugin Logs', 'wp-logger' ); ?>
+				<span class="wp-logger-collapse <?php echo $collapse_form_class; ?>"><?php esc_html_e( 'Collapse Report Form', 'wp-logger' ); ?></span>
+				<span class="wp-logger-collapse <?php echo $show_form_class; ?>"><?php esc_html_e( 'Show Report Form', 'wp-logger' ); ?></span>
+			</h2>
 
 			<?php
 				/*
