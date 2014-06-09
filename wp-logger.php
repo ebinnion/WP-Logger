@@ -80,6 +80,33 @@ class WP_Logger {
 	}
 
 	/**
+	 * Will remove excess log entries for a plugin. This method is called by add_entry after adding an entry.
+	 *
+	 * @param  string $plugin_name The plugin's slug, as passed by developer.
+	 */
+	function limit_plugin_logs( $plugin_name ) {
+		global $wpdb;
+
+		/**
+		 * Allows plugin developers to modify the log entry limit for their plugin.
+		 * @param int Limit defaults to 100 entries per plugin.
+		 */
+		$limit = apply_filters( 'wp_logger_limit_' . $plugin_name, 100 );
+
+		$comments = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->comments WHERE comment_approved = 'wp-logger' AND comment_author = %s ORDER BY comment_date ASC", $plugin_name ) );
+
+		$count = count( $comments );
+
+		if ( $count > $limit ) {
+			$diff = $count - $limit;
+
+			for ( $i = 0; $i < $diff; $i++ ) {
+				wp_delete_comment( $comments[ $i ]->comment_ID, true );
+			}
+		}
+	}
+
+	/**
 	 * Exposes a method to allow developers to log a message.
 	 *
 	 * @global WP_Post $post The global WP_Post object.
@@ -176,6 +203,8 @@ class WP_Logger {
 		);
 
 		$comment_id = wp_insert_comment( wp_filter_comment( $comment_data ) );
+
+		$this->limit_plugin_logs( $plugin_name );
 
 		// Returns true if comment/entry was successfully added and false on falure.
 		return (boolean) $comment_id;

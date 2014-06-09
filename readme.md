@@ -33,7 +33,7 @@ The following are examples for plugin developers.
 WP Logger allows plugin developers to register an email that users can then send logs to. This serves to simplify the process of getting information from users. Below is an example of registering an email:
 
 ```php
-add_filter( 'wp_logger_author_email', 'add_logger_plugin_email' );
+add_filter( 'wp_logger_author_email' . $plugin_name , 'add_logger_plugin_email' );
 function add_logger_plugin_email( $emails ) {
 	$emails['wp-logger-test'] = 'ericbinnion@gmail.com';
 	return $emails;
@@ -69,6 +69,19 @@ This functionality could potentially be implemented on the `register_deactivatio
 
 ```php
 do_action( 'wp_logger_purge', $plugin_slug );
+```
+
+### Increasing/Decreasing Log Limit
+
+To minimize the performance impact of logging entries, all plugins are limited to adding 100 log entries by default. Each time a log entry is added above and beyond a plugin's limit, the oldest entry will be deleted.
+
+Here is an example of how to modify the limit for a plugin.
+
+```
+add_filter( 'wp_logger_limit_' . $plugin_slug, 'increase_logger_limit' );
+function increase_logger_limit( $limit ) {
+	return 100;
+}
 ```
 
 ### Sample Plugin
@@ -114,5 +127,10 @@ function wp_logger_purge_logs() {
 
 	// Delete all log entries for the `wp-logger-test` plugin.
 	do_action( 'wp_logger_purge', 'wp-logger-test' );
+}
+
+add_filter( 'wp_logger_limit_wp-logger-test', 'increase_logger_test_limit' );
+function increase_logger_test_limit( $limit ) {
+	return 101;
 }
 ```
