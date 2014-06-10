@@ -33,10 +33,9 @@ The following are examples for plugin developers.
 WP Logger allows plugin developers to register an email that users can then send logs to. This serves to simplify the process of getting information from users. Below is an example of registering an email:
 
 ```php
-add_filter( 'wp_logger_author_email' . $plugin_name , 'add_logger_plugin_email' );
-function add_logger_plugin_email( $emails ) {
-	$emails['wp-logger-test'] = 'ericbinnion@gmail.com';
-	return $emails;
+add_filter( 'wp_logger_author_email_' . $plugin_name, 'wp_logger_add_test_email' );
+function wp_logger_add_test_email( $email ) {
+	return 'developer@gmail.com';
 }
 ```
 
@@ -78,9 +77,13 @@ To minimize the performance impact of logging entries, all plugins are limited t
 Here is an example of how to modify the limit for a plugin.
 
 ```php
-add_filter( 'wp_logger_limit_' . $plugin_slug, 'increase_logger_limit' );
-function increase_logger_limit( $limit ) {
-	return 100;
+add_filter( 'wp_logger_limit_' . $plugin_slug, 'increase_logger_limit', 10, 2 );
+function increase_logger_limit( $limit, $log_name ) {
+	if( 'errors' == $log_name ) {
+		$limit = 40;
+	}
+
+	return $limit;
 }
 ```
 
@@ -114,12 +117,9 @@ function wp_logger_test_add() {
 	do_action( 'wp_logger_add', 'wp-logger-test', 'message', 'Hello World!', 6 );
 }
 
-add_filter( 'wp_logger_author_email', 'wp_logger_add_test_email' );
+add_filter( 'wp_logger_author_email_wp-logger-test', 'wp_logger_add_test_email' );
 function wp_logger_add_test_email( $emails ) {
-
-	// Registers `developer@gmail.com` for the `wp-logger-test` plugin.
-	$emails['wp-logger-test'] = 'developer@gmail.com';
-	return $emails;
+	return 'developer@gmail.com';
 }
 
 register_deactivation_hook( __FILE__, 'wp_logger_purge_logs' );
