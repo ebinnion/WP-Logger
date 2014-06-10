@@ -622,7 +622,7 @@ class WP_Logger {
 			foreach ( $entries['entries'] as $entry ){
 
 				$data[] = array(
-					'id'             => $entry->comment_ID,
+					'id'           => $entry->comment_ID,
 					'log_severity' => $entry->user_id,
 					'log_msg'      => $entry->comment_content,
 					'log_date'     => $entry->comment_date,

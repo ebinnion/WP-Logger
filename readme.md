@@ -77,7 +77,7 @@ To minimize the performance impact of logging entries, all plugins are limited t
 
 Here is an example of how to modify the limit for a plugin.
 
-```
+```php
 add_filter( 'wp_logger_limit_' . $plugin_slug, 'increase_logger_limit' );
 function increase_logger_limit( $limit ) {
 	return 100;
