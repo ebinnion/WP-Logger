@@ -177,7 +177,7 @@ class WP_Logger {
 
 		$comment_id = wp_insert_comment( wp_filter_comment( $comment_data ) );
 
-		$this->limit_plugin_logs( $plugin_name );
+		$this->limit_plugin_logs( $plugin_name, $log, $post_id );
 
 		// Returns true if comment/entry was successfully added and false on falure.
 		return (boolean) $comment_id;
@@ -615,20 +615,34 @@ class WP_Logger {
 	 * Will remove excess log entries for a plugin. This method is called by add_entry after adding an entry.
 	 *
 	 * @param  string $plugin_name The plugin's slug, as passed by developer.
+	 * @param  string $log_name The log for the current entry.
+	 * @param int $log_id The log's post ID.
 	 */
-	private function limit_plugin_logs( $plugin_name ) {
+	private function limit_plugin_logs( $plugin_name, $log_name, $log_id ) {
 		global $wpdb;
 
 		/**
 		 * Allows plugin developers to modify the log entry limit for their plugin.
-		 * @param int Limit defaults to 100 entries per plugin.
+		 *
+		 * @param int Limit defaults to 20 entries per plugin log.
+		 * @param string $log_name The log for the current entry.
 		 */
-		$limit = apply_filters( 'wp_logger_limit_' . $plugin_name, 100 );
+		$limit = apply_filters( 'wp_logger_limit_' . $plugin_name, 20, $log_name );
 
-		$comments = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->comments WHERE comment_approved = 'wp-logger' AND comment_author = %s ORDER BY comment_date ASC", $plugin_name ) );
+		$comments = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM $wpdb->comments WHERE comment_approved = 'wp-logger' AND comment_author = %s AND comment_post_ID = %d ORDER BY comment_date ASC",
+				$plugin_name,
+				$log_id
+			)
+		);
 
+		// Get the number of rows returned by last query.
 		$count = $wpdb->num_rows;
 
+		/*
+		 * To account for switching log limits, allow for deleting multiple log entries at a time.
+		 */
 		if ( $count > $limit ) {
 			$diff = $count - $limit;
 

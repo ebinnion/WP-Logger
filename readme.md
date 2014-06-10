@@ -129,8 +129,12 @@ function wp_logger_purge_logs() {
 	do_action( 'wp_logger_purge', 'wp-logger-test' );
 }
 
-add_filter( 'wp_logger_limit_wp-logger-test', 'increase_logger_test_limit' );
-function increase_logger_test_limit( $limit ) {
-	return 101;
+add_filter( 'wp_logger_limit_wp-logger-test', 'increase_logger_limit', 10, 2 );
+function increase_logger_limit( $limit, $log_name ) {
+	if ( 'errors' == $log_name ) {
+		$limit = 40;
+	}
+
+	return $limit;
 }
 ```
