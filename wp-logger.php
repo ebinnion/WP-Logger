@@ -372,6 +372,40 @@ class WP_Logger {
 					text-align: center;
 				}
 
+				/* The followingare IE8 specific (desktop) styles */
+				.ie8 #col-right {
+					width: 75%!important;
+				}
+
+				.ie8 #col-left {
+					width: 25%!important;
+				}
+
+				.ie8 .wp-logger-collapse {
+					color: #999;
+					font-size: .5em;
+					cursor: pointer;
+				}
+
+				/* Controls which phrase shows for toggling report forms by page title. Toggled via jQuery */
+				.ie8 .wp-logger-collapse.hidden {
+					display: none;
+				}
+
+				/* Controls the display when hiding the report form */
+				.ie8 .hide-form .col-wrap {
+					padding-left: 0;
+				}
+
+				.ie8 .hide-form #col-right {
+					width: 100%!important;
+				}
+
+				.ie8 .hide-form #col-left {
+					display: none;
+					width: 0!important;
+				}
+
 				@media only screen and (min-width: 769px) {
 					#col-right {
 						width: 75%!important;
@@ -387,7 +421,7 @@ class WP_Logger {
 						cursor: pointer;
 					}
 
-					/* Controls which phrase shows for toggling report forms by page title */
+					/* Controls which phrase shows for toggling report forms by page title. Toggled via jQuery */
 					.wp-logger-collapse.hidden {
 						display: none;
 					}
