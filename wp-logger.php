@@ -473,7 +473,6 @@ class WP_Logger {
 			$show_form_class     = 'hidden';
 		}
 
-		$logs          = $this->get_logs( $plugin_select );
 		$entries       = $this->get_entries();
 		$plugins       = $this->get_plugins();
 
@@ -553,30 +552,7 @@ class WP_Logger {
 
 						<?php endif; ?>
 
-						<?php if ( false != $logs && $logs->have_posts() ): ?>
-
-							<div class="form-field">
-								<p>
-									<label for="log-select"><?php esc_html_e( 'Log', 'wp-logger' ); ?></label>
-									<br />
-									<select id="log-select" name="log-select">
-										<option value=""><?php esc_html_e( 'All Logs', 'wp-logger' ); ?></option>
-
-										<?php
-											while ( $logs->have_posts() ) {
-												$logs->the_post();
-												$temp_log_id    = esc_attr( $post->ID );
-												$temp_log_title = esc_attr( $post->post_title );
-												echo "<option value='$temp_log_id'" . selected( $post->ID, $log_id, false ) . ">$temp_log_title</option>";
-											}
-										?>
-									</select>
-									<br />
-									<?php esc_html_e( 'Select a log for this plugin.', 'wp-loggger' ); ?>
-								</p>
-							</div>
-
-						<?php endif; ?>
+						<?php $this->build_log_select( $plugin_select, $log_id ); ?>
 
 						<p>
 							<button class="button button-primary">
@@ -609,6 +585,47 @@ class WP_Logger {
 		</div>
 
 		<?php
+	}
+
+	/**
+	 * Builds the log select for WP Logger admin.
+	 *
+	 * @global  WP_Post $post The global WP_Post instantiation
+	 *
+	 * @param  string  $plugin_name The plugin's slug.
+	 * @param  int $log_id The selected log's post ID
+	 */
+	private function build_log_select( $plugin_name, $log_id = false ) {
+		global $post;
+
+		$logs = $this->get_logs( $plugin_name );
+
+		if ( false != $logs && $logs->have_posts() ) {
+			?>
+
+			<div class="form-field">
+				<p>
+					<label for="log-select"><?php esc_html_e( 'Log', 'wp-logger' ); ?></label>
+					<br />
+					<select id="log-select" name="log-select">
+						<option value=""><?php esc_html_e( 'All Logs', 'wp-logger' ); ?></option>
+
+						<?php
+							while ( $logs->have_posts() ) {
+								$logs->the_post();
+								$temp_log_id    = esc_attr( $post->ID );
+								$temp_log_title = esc_attr( $post->post_title );
+								echo "<option value='$temp_log_id'" . selected( $post->ID, $log_id, false ) . ">$temp_log_title</option>";
+							}
+						?>
+					</select>
+					<br />
+					<?php esc_html_e( 'Select a log for this plugin.', 'wp-loggger' ); ?>
+				</p>
+			</div>
+
+			<?php
+		}
 	}
 
 	/**
