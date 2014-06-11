@@ -39,13 +39,16 @@ class WP_Logger {
 
 		self::$instance = $this;
 
-		add_action( 'init',              array( $this, 'init' ), 1 );
-		add_action( 'admin_menu',        array( $this, 'add_menu_page' ) );
-		add_action( 'admin_footer',      array( $this, 'admin_footer' ) );
+		add_action( 'init',         array( $this, 'init' ), 1 );
+		add_action( 'admin_menu',   array( $this, 'add_menu_page' ) );
+		add_action( 'admin_footer', array( $this, 'admin_footer' ) );
+
 		add_filter( 'wp_logger_version', array( $this, 'set_wp_logger_version' ) );
 		add_filter( 'comments_clauses',  array( $this, 'add_comment_author' ), 10, 2 );
 		add_action( 'wp_logger_add',     array( $this, 'add_entry' ), 10, 4  );
 		add_action( 'wp_logger_purge',   array( $this, 'purge_plugin_logs' ) );
+
+		add_action( 'wp_ajax_get_logger_log_select', array( $this, 'ajax_gen_log_select' ) );
 	}
 
 	/**
@@ -314,6 +317,14 @@ class WP_Logger {
 	}
 
 	/**
+	 * Returns build_log_select through AJAX.
+	 */
+	function ajax_gen_log_select() {
+		$this->build_log_select( sanitize_text_field( $_POST['plugin_name'] ) );
+		exit;
+	}
+
+	/**
 	 * Adds a hidden input field to the wp_logger_messages page and then submits the form. The hidden field
 	 * acts as a flag to send logs to an email. Also, will remove log select from pagewhen plugin select value is changed.
 	 */
@@ -326,18 +337,37 @@ class WP_Logger {
 
 				(function( $ ) {
 					var pluginSelect    = $( '#plugin-select' ),
+						pluginSelectP   = pluginSelect.parents( 'p' ),
 						pluginSelectVal = pluginSelect.val(),
 						loggerForm      = $( '#logger-form' ),
 						wrap            = $( '.wrap' );
 
 					/*
-					 If a user is currently viewing a log for a plugin, and the user
-					 selects a different plugin, the remove the log select.
+					 * Generate and display the log select whenever a user changes the plugin that
+					 * they would like to view a report for.
 					 */
 					pluginSelect.change( function() {
-						if( pluginSelectVal !== pluginSelect.val() ) {
-							$( '#log-select' ).parents( '.form-field' ).remove();
-						}
+						var newPluginSelectVal = pluginSelect.val();
+
+						pluginSelectP.addClass( 'ajaxed' );
+
+						jQuery.post(
+							ajaxurl,
+							{
+								'action': 'get_logger_log_select',
+								'plugin_name': newPluginSelectVal
+							},
+							function(response){
+
+								// This is fired on successfully returning the log select
+								$( '#log-select' ).html( response );
+							}
+						)
+						.always(function(){
+
+							// Whether the AJAX fails or succeeds, always remove the spinner on completion.
+							pluginSelectP.removeClass( 'ajaxed' );
+						});
 					});
 
 					$( '#send-logger-email' ).click( function() {
@@ -370,6 +400,11 @@ class WP_Logger {
 				td:nth-child( 3 ) {
 					width: 5%!important;
 					text-align: center;
+				}
+
+				.ajaxed {
+					padding-right: 30px;
+					background: url( '/wp-admin/images/spinner.gif' ) no-repeat right center;
 				}
 
 				/* The followingare IE8 specific (desktop) styles */
@@ -552,7 +587,9 @@ class WP_Logger {
 
 						<?php endif; ?>
 
-						<?php $this->build_log_select( $plugin_select, $log_id ); ?>
+						<div id="log-select">
+							<?php $this->build_log_select( $plugin_select, $log_id ); ?>
+						</div>
 
 						<p>
 							<button class="button button-primary">
