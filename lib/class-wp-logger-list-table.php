@@ -79,7 +79,6 @@ class WP_Logger_List_Table extends WP_List_Table {
 	 * Sets column ids and labels.
 	 *
 	 * @return array $args {
-	 *     @string $cb Adds a checkbox to the table that is used for bulk actions.
 	 *     @string $log_msg The label for the log column.
 	 *     @string $log_severity The label for the Severity column.
 	 *     @string $log_plugin The label for the plugin name column.
@@ -88,7 +87,6 @@ class WP_Logger_List_Table extends WP_List_Table {
 	 */
 	public function get_columns() {
 		$columns = array(
-			'cb'             => '<input type="checkbox" />',
 			'log_msg'      => esc_html__( 'Log Message', 'wp-logger' ),
 			'log_severity' => esc_html__( 'Severity', 'wp-logger' ),
 			'log_plugin'   => esc_html__( 'Plugin', 'wp-logger' ),
@@ -135,7 +133,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 		if( ! empty( $this->items ) ) {
 			foreach ( $this->items as $item ) {
 				$data[] = array(
-					'id'            => $item->comment_ID,
+					'id'          => $item->comment_ID,
 					'log_severity'=> $item->user_id,
 					'log_msg'     => $item->comment_content,
 					'log_date'    => $item->comment_date,
@@ -297,23 +295,6 @@ class WP_Logger_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Returns the value for the cb column.
-	 *
-	 * @param array $args {
-	 *     @int $id The ID for the current comment.
-	 *     @string $log_msg The value for the log column.
-	 *     @string $log_severity The value for the Severity column.
-	 *     @string $log_plugin The value for the plugin name column.
-	 *     @string $log_date The value for the date the log entry was created.
-	 * }
-	 *
-	 * @return @string Checkbox for bulk edit functionality.
-	 */
-	public function column_cb( $item ) {
-		return sprintf( '<input type="checkbox" name="logs[]" value="%s" />', $item['id'] );
-	}
-
-	/**
 	 * Returns the value for the id column.
 	 *
 	 * @param array $args {
@@ -396,19 +377,5 @@ class WP_Logger_List_Table extends WP_List_Table {
 	 */
 	public function column_log_severity( $item ) {
 		return $item['log_severity'];
-	}
-
-	/**
-	 * Returns a list of bulk actions used to create the bulk action select field.
-	 *
-	 * @return array $args {
-	 *     @string $delete The label of the delete action.
-	 * }
-	 */
-	public function get_bulk_actions() {
-		$actions = array(
-			'delete'    => esc_html__( 'Delete', 'wp-logger' )
-		);
-		return $actions;
 	}
 }

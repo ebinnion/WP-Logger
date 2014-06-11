@@ -393,13 +393,8 @@ class WP_Logger {
 			</script>
 
 			<style>
-				td:nth-child( 2 ) {
+				td:nth-child( 1 ) {
 					width: 50%!important;
-				}
-
-				td:nth-child( 3 ) {
-					width: 5%!important;
-					text-align: center;
 				}
 
 				.ajaxed {
