@@ -346,7 +346,7 @@ class WP_Logger {
 					var pluginSelect    = $( '#plugin-select' ),
 						loggerForm      = $( '#logger-form' ),
 						wrap            = $( '.wrap' ),
-						actions         = $( '.tablenav .actions' );
+						actions         = $( '.tablenav .actions.bulkactions' );
 
 					/*
 					 * Generate and display the log select whenever a user changes the plugin that
@@ -506,6 +506,12 @@ class WP_Logger {
 
 			<form method="post" id="logger-form" action="<?php echo admin_url( 'admin.php?page=wp_logger_messages' ); ?>">
 				<?php wp_nonce_field( 'wp_logger_generate_report', 'wp_logger_form_nonce' ) ?>
+
+				<div class="tablenav top">
+					<div class="alignleft actions">
+						<input type="text" placeholder="Search" name="search" value="<?php echo $search; ?>">
+					</div>
+				</div>
 
 				<div class="tablenav top">
 					<div class="alignleft actions bulkactions">
