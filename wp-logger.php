@@ -18,6 +18,11 @@ class WP_Logger {
 	private static $instance = null;
 
 	/**
+	 * Member data that holds the post_id for the current session, if there is one.
+	 */
+	private static $session_post = null;
+
+	/**
 	 * Constant for the WP Logger taxonomy
 	 */
 	const TAXONOMY = 'plugin-messages';
@@ -39,16 +44,19 @@ class WP_Logger {
 
 		self::$instance = $this;
 
-		add_action( 'init',         array( $this, 'init' ), 1 );
-		add_action( 'admin_menu',   array( $this, 'add_menu_page' ) );
-		add_action( 'admin_footer', array( $this, 'admin_footer' ) );
+		add_action( 'init',                     array( $this, 'init' ), 1 );
+		add_action( 'admin_menu',               array( $this, 'add_menu_page' ) );
+		add_action( 'admin_footer',             array( $this, 'admin_footer' ) );
+		add_action( 'wp_logger_add',            array( $this, 'add_entry' ), 10, 4  );
+		add_action( 'wp_logger_purge',          array( $this, 'purge_plugin_logs' ) );
+		add_action( 'wp_logger_create_session', array( $this, 'create_set_session' ), 10, 3 );
+		add_action( 'wp_logger_end_session',    array( $this, 'end_session' ) );
 
 		add_filter( 'wp_logger_version', array( $this, 'set_wp_logger_version' ) );
 		add_filter( 'comments_clauses',  array( $this, 'add_comment_author' ), 10, 2 );
-		add_action( 'wp_logger_add',     array( $this, 'add_entry' ), 10, 4  );
-		add_action( 'wp_logger_purge',   array( $this, 'purge_plugin_logs' ) );
 
-		add_action( 'wp_ajax_get_logger_log_select', array( $this, 'ajax_gen_log_select' ) );
+		add_action( 'wp_ajax_get_logger_log_select',     array( $this, 'ajax_gen_log_select' ) );
+		add_action( 'wp_ajax_get_logger_session_select', array( $this, 'ajax_gen_session_select' ) );
 	}
 
 	/**
@@ -71,7 +79,13 @@ class WP_Logger {
 	function purge_plugin_logs( $plugin_name ) {
 		global $post;
 
-		$logs = $this->get_logs( $plugin_name );
+		$logs = $this->get_logs( $plugin_name, 'purge' );
+
+		// echo '<pre>';
+		// print_r($logs);
+		// echo '</pre>';
+
+		// exit;
 
 		if ( $logs->have_posts() ) {
 			while ( $logs->have_posts() ) {
@@ -89,81 +103,31 @@ class WP_Logger {
 	 *
 	 * @param  string $log String identifying this plugin.
 	 * @param  string $plugin_name The plugin's slug.
+	 *
 	 * @return bool Returns true if entry was successfully added and false if entry failed.
 	 */
-	function add_entry( $plugin_name, $log = 'message', $message, $severity = 1 ) {
+	function add_entry( $plugin_name, $log, $message, $severity = 1 ) {
 		global $post;
 
-		$prefixed_term = $this->prefix_slug( $plugin_name );
-
-		// If there is not currently a term (category) for this plugin, create it.
-		if ( ! term_exists( $prefixed_term, self::TAXONOMY ) ) {
-
-			// Create a taxonomy term that distinguishes current plugin from others.
-			$registered = wp_insert_term(
-				$plugin_name,
-				self::TAXONOMY,
-				array(
-					'slug' => $prefixed_term
-				)
-			);
-
-			// Check if taxonomy term was succeessfully added and return if not.
-			if ( is_wp_error( $registered ) ) {
-				return false;
-			}
-		}
-
-		$log_exists = new WP_Query(
-			array(
-				'post_type' => self::CPT,
-				'name'      => $this->prefix_slug( $log, $plugin_name ),
-				'tax_query' => array(
-					array(
-						'taxonomy' => self::TAXONOMY,
-						'field'    => 'slug',
-						'terms'    => $prefixed_term
-					)
-				)
-			)
-		);
+		$prefixed_term = $this->do_plugin_term( $plugin_name );
 
 		/*
-		 * If the log that the developer wants to write to exists, add a comment.
-		 * Else, create log then add comment.
+		 * If there is a current session, then attach this log entry to that session.
+		 * Else, get the post_id for the matching log if exists, or create a log
+		 * if one does not exist with the supplied log key.
 		 */
-		if ( $log_exists->have_posts() ) {
-			$log_exists->the_post();
-			$post_id = $post->ID;
-
+		if ( self::$session_post ) {
+			$post_id = self::$session_post;
 		} else {
-			$post_id = wp_insert_post(
-				array(
-					'post_title'     => $log,
-					'post_name'      => $this->prefix_slug( $log, $plugin_name ),
-					'post_type'      => self::CPT,
-					'comment_status' => 'closed',
-					'ping_status'    => 'closed',
-					'post_status'    => 'publish',
-				)
-			);
 
-			if ( 0 == $post_id ) {
-				return false;
-			}
+			$post_id = $this->check_existing_log( $plugin_name, $log );
 
-			$add_terms = wp_set_post_terms(
-				$post_id,
-				$prefixed_term,
-				self::TAXONOMY
-			);
+			if ( false == $post_id ) {
+				$post_id = $this->create_post_with_terms( $plugin_name, $log );
 
-			/*
-			 * A successful call to wp_set_post_terms will return an array. A failure could return
-			 * a WP_Error object, false, or a string.
-			 */
-			if ( ! is_array( $add_terms ) ) {
-				return false;
+				if ( false == $post_id ) {
+					return false;
+				}
 			}
 		}
 
@@ -304,6 +268,7 @@ class WP_Logger {
 	 *
 	 * @param array $pieces Array containing the comment query arguments.
 	 * @param WP_Comment_Quey &Comment Reference to the WP_Comment_Query object.
+	 *
 	 * @return array Containing the comment query arguments.
 	 */
 	function add_comment_author( $pieces, &$comment ) {
@@ -317,10 +282,52 @@ class WP_Logger {
 	}
 
 	/**
+	 * Create a session that is used to group all entries until another session is created or until
+	 * session is destroyed.
+	 *
+	 * @param  string $plugin_name   The plugin's slug
+	 * @param  int    $log           The log to assign the session to.
+	 * @param  string $session_title The session's title.
+	 *
+	 * @return boolean               True if session was successfully set, false otherwise.
+	 */
+	function create_set_session( $plugin_name, $log, $session_title ) {
+		$post_id = $this->create_post_with_terms( $plugin_name, $log, $session_title );
+
+		if( false == $post_id ) {
+			return false;
+		}
+
+		self::$session_post = $post_id;
+
+		return true;
+	}
+
+	/**
+	 * Ends the current session by setting the static session_post variable back to null.
+	 *
+	 * @return boolean True on success.
+	 */
+	function end_session() {
+		self::$session_post = null;
+		return true;
+	}
+
+	/**
 	 * Returns build_log_select through AJAX.
 	 */
 	function ajax_gen_log_select() {
-		$this->build_log_select( sanitize_text_field( $_POST['plugin_name'] ) );
+		$plugin_select = isset( $_POST['plugin_name'] ) ? $_POST['plugin_name'] : '';
+		$this->build_log_select( sanitize_text_field( $plugin_select ) );
+		exit;
+	}
+
+	/**
+	 * Returns build_session_select through AJAX.
+	 */
+	function ajax_gen_session_select() {
+		$log_select = isset( $_POST['log_select'] ) ? $_POST['log_select'] : '';
+		$this->build_session_select( sanitize_text_field( $log_select ) );
 		exit;
 	}
 
@@ -337,10 +344,9 @@ class WP_Logger {
 
 				(function( $ ) {
 					var pluginSelect    = $( '#plugin-select' ),
-						pluginSelectP   = pluginSelect.parents( 'p' ),
-						pluginSelectVal = pluginSelect.val(),
 						loggerForm      = $( '#logger-form' ),
-						wrap            = $( '.wrap' );
+						wrap            = $( '.wrap' ),
+						actions         = $( '.tablenav .actions' );
 
 					/*
 					 * Generate and display the log select whenever a user changes the plugin that
@@ -349,7 +355,7 @@ class WP_Logger {
 					pluginSelect.change( function() {
 						var newPluginSelectVal = pluginSelect.val();
 
-						pluginSelectP.addClass( 'ajaxed' );
+						actions.addClass( 'ajaxed' );
 
 						jQuery.post(
 							ajaxurl,
@@ -360,13 +366,38 @@ class WP_Logger {
 							function(response){
 
 								// This is fired on successfully returning the log select
-								$( '#log-select' ).html( response );
+								$( '#log-select-contain' ).html( response );
+								$( '#session-select-contain' ).html( '' );
 							}
 						)
 						.always(function(){
 
 							// Whether the AJAX fails or succeeds, always remove the spinner on completion.
-							pluginSelectP.removeClass( 'ajaxed' );
+							actions.removeClass( 'ajaxed' );
+						});
+					});
+
+					$( 'body' ).on( 'change', '#log-select', function(){
+						var newLogSelectVal = $(this).val();
+
+						actions.addClass( 'ajaxed' );
+
+						jQuery.post(
+							ajaxurl,
+							{
+								'action': 'get_logger_session_select',
+								'log_select': newLogSelectVal
+							},
+							function(response){
+
+								// This is fired on successfully returning the log select
+								$( '#session-select-contain' ).html( response );
+							}
+						)
+						.always(function(){
+
+							// Whether the AJAX fails or succeeds, always remove the spinner on completion.
+							actions.removeClass( 'ajaxed' );
 						});
 					});
 
@@ -398,77 +429,23 @@ class WP_Logger {
 				}
 
 				.ajaxed {
-					padding-right: 30px;
+					padding-right: 20px!important;
 					background: url( '/wp-admin/images/spinner.gif' ) no-repeat right center;
 				}
 
-				/* The followingare IE8 specific (desktop) styles */
-				.ie8 #col-right {
-					width: 75%!important;
-				}
-
-				.ie8 #col-left {
-					width: 25%!important;
-				}
-
-				.ie8 .wp-logger-collapse {
-					color: #999;
-					font-size: .5em;
-					cursor: pointer;
-				}
-
-				/* Controls which phrase shows for toggling report forms by page title. Toggled via jQuery */
-				.ie8 .wp-logger-collapse.hidden {
-					display: none;
-				}
-
-				/* Controls the display when hiding the report form */
-				.ie8 .hide-form .col-wrap {
-					padding-left: 0;
-				}
-
-				.ie8 .hide-form #col-right {
-					width: 100%!important;
-				}
-
-				.ie8 .hide-form #col-left {
-					display: none;
-					width: 0!important;
-				}
-
-				@media only screen and (min-width: 769px) {
-					#col-right {
-						width: 75%!important;
+				@media only screen and ( max-width: 768px ) {
+					.tablenav.top .actions {
+						display: block;
 					}
 
-					#col-left {
-						width: 25%!important;
-					}
+					.tablenav.top .actions select {
+						display: block;
 
-					.wp-logger-collapse {
-						color: #999;
-						font-size: .5em;
-						cursor: pointer;
 					}
+				}
 
-					/* Controls which phrase shows for toggling report forms by page title. Toggled via jQuery */
-					.wp-logger-collapse.hidden {
-						display: none;
-					}
+				@media only screen and ( min-width: 769px ) {
 
-					/* Controls the display when hiding the report form */
-					.hide-form .col-wrap {
-						padding-left: 0;
-					}
-
-					.hide-form #col-right {
-						width: 100%!important;
-					}
-
-					.hide-form #col-left {
-						display: none;
-						width: 0!important;
-					}
 				}
 			</style>
 
@@ -490,18 +467,9 @@ class WP_Logger {
 
 		$plugin_select = isset( $_POST['plugin-select'] ) ? $_POST['plugin-select'] : false;
 		$log_id        = isset( $_POST['log-select'] ) ? $_POST['log-select'] : false;
+		$session_id    = isset( $_POST['session-select'] ) ? $_POST['session-select'] : false;
 		$search        = isset( $_POST['search'] ) ? $_POST['search'] : '';
 		$hide_form     = isset( $_COOKIE['wp_logger_hide_form'] ) ? 'hide-form' : '';
-
-		if ( isset( $_COOKIE['wp_logger_hide_form'] ) ) {
-			$wrap_class          = 'hide-form';
-			$collapse_form_class = 'hidden';
-			$show_form_class     = '';
-		} else {
-			$wrap_class          = '';
-			$collapse_form_class = '';
-			$show_form_class     = 'hidden';
-		}
 
 		$entries       = $this->get_entries();
 		$plugins       = $this->get_plugins();
@@ -511,11 +479,9 @@ class WP_Logger {
 
 		?>
 
-		<div class="wrap <?php echo $wrap_class ?>">
+		<div class="wrap">
 			<h2>
 				<?php esc_html_e( 'Plugin Logs', 'wp-logger' ); ?>
-				<span class="wp-logger-collapse <?php echo $collapse_form_class; ?>"><?php esc_html_e( 'Collapse Report Form', 'wp-logger' ); ?></span>
-				<span class="wp-logger-collapse <?php echo $show_form_class; ?>"><?php esc_html_e( 'Show Report Form', 'wp-logger' ); ?></span>
 			</h2>
 
 			<?php
@@ -540,83 +506,181 @@ class WP_Logger {
 
 			<form method="post" id="logger-form" action="<?php echo admin_url( 'admin.php?page=wp_logger_messages' ); ?>">
 				<?php wp_nonce_field( 'wp_logger_generate_report', 'wp_logger_form_nonce' ) ?>
-				<div id="col-container">
-					<div id="col-right">
-						<div class="col-wrap">
+
+				<div class="tablenav top">
+					<div class="alignleft actions bulkactions">
+						<select id="plugin-select" name="plugin-select">
+							<option value=""><?php esc_html_e( 'All Plugins', 'wp-logger' ); ?></option>
+
 							<?php
-
-								// Uses WP_Logger_List_Table to display the logger entries.
-								$logger_table->display();
+								foreach ( $plugins as $plugin ) {
+									$temp_plugin_name = esc_attr( $plugin->name );
+									echo "<option value='$temp_plugin_name'" . selected( $plugin->name, $plugin_select, false ) . ">$temp_plugin_name</option>";
+								}
 							?>
-						</div>
-					</div>
+						</select>
 
-					<div id="col-left">
-						<h3><?php esc_html_e( 'Generate Log Report', 'wp-logger' ); ?></h3>
-
-						<div class="form-field">
-							<label for="search"><?php esc_html_e( 'Search', 'wp-logger' ); ?></label>
-							<input name="search" id="search" type="text" value="<?php if( isset( $_POST['search'] ) ) { echo esc_attr( $_POST['search'] ); } ?>" size="40" aria-required="true">
-						</div>
-
-						<?php if ( ! empty( $plugins ) ) : ?>
-
-							<div class="form-field">
-								<p>
-									<label for="plugin-select"><?php esc_html_e( 'Plugin', 'wp-logger' ); ?></label>
-									<br />
-									<select id="plugin-select" name="plugin-select">
-										<option value=""><?php esc_html_e( 'All Plugins', 'wp-logger' ); ?></option>
-
-										<?php
-											foreach ( $plugins as $plugin ) {
-												$temp_plugin_name = esc_attr( $plugin->name );
-												echo "<option value='$temp_plugin_name'" . selected( $plugin->name, $plugin_select, false ) . ">$temp_plugin_name</option>";
-											}
-										?>
-									</select>
-									<br />
-									<?php esc_html_e( 'Select a plugin to view logs for.', 'wp-logger' ); ?>
-								</p>
-							</div>
-
-						<?php endif; ?>
-
-						<div id="log-select">
+						<span id="log-select-contain">
 							<?php $this->build_log_select( $plugin_select, $log_id ); ?>
-						</div>
+						</span>
 
-						<p>
-							<button class="button button-primary">
-								<?php esc_html_e( 'Generate Report', 'wp-logger' ); ?>
-							</button>
-						</p>
+						<span id="session-select-contain">
+							<?php $this->build_session_select( $log_id, $session_id ); ?>
+						</span>
 
-						<p>
-							<hr>
-						</p> <!-- Seperator -->
-
-						<h3><?php esc_html_e( 'Email Results', 'wp-logger' ); ?></h3>
-
-						<p><?php esc_html_e( 'You can easily email the current log report that you have generated by entering an email below and clicking send!', 'wp-logger' ); ?></p>
-
-						<div class="form-field">
-							<label for="email-results">Email</label>
-							<input name="email-logs" value="<?php echo esc_attr( $this->get_plugin_email( $plugin_select ) ); ?>" id="email-results" type="text" size="40" aria-required="true">
-							<p><?php esc_html_e( 'Enter an email above to email a log.', 'wp-logger' ); ?></p>
-						</div>
-
-						<p>
-							<a id="send-logger-email" class="button"><?php esc_html_e( 'Send', 'wp-logger' ); ?></a>
-						</p>
-
+						<input type="submit" class="button button-primary" value="Generate Report">
 					</div>
 
+					<?php $logger_table->pagination( 'top' ); ?>
+					<br class="clear">
 				</div>
+
+				<table class="wp-list-table <?php echo implode( ' ', $logger_table->get_table_classes() ); ?>">
+					<thead>
+					<tr>
+						<?php $logger_table->print_column_headers(); ?>
+					</tr>
+					</thead>
+
+					<tfoot>
+					<tr>
+						<?php $logger_table->print_column_headers( false ); ?>
+					</tr>
+					</tfoot>
+
+					<tbody>
+						<?php $logger_table->display_rows_or_placeholder(); ?>
+					</tbody>
+				</table>
 			</form>
 		</div>
 
 		<?php
+	}
+
+	/**
+	 * Checks if there is an existing log for a plugin.
+	 *
+	 * @param  string $plugin_name The plugin's slug.
+	 * @param  string $log         The log's name.
+	 *
+	 * @return boolean|int         Returns the post ID on success or false on failure.
+	 */
+	private function check_existing_log( $plugin_name, $log ) {
+		global $post;
+
+		$prefixed_term = $this->do_plugin_term( $plugin_name );
+
+		$log_exists = new WP_Query(
+			array(
+				'post_type' => self::CPT,
+				'name'      => $this->prefix_slug( $log, $plugin_name ),
+				'tax_query' => array(
+					array(
+						'taxonomy' => self::TAXONOMY,
+						'field'    => 'slug',
+						'terms'    => $prefixed_term
+					)
+				)
+			)
+		);
+
+		// If there is an existing log, return post ID. Else, retun false.
+		if ( $log_exists->have_posts() ) {
+			$log_exists->the_post();
+			return $post->ID;
+
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Creates a post and sets the terms for the post.
+	 *
+	 * @param  string $plugin_name   The plugin's slug
+	 * @param  int    $log           The post ID for the log.
+	 * @param  string $session_title The name of the session title.
+	 *
+	 * @return boolean|int           False on failure or post_id on success.
+	 */
+	private function create_post_with_terms( $plugin_name, $log, $session_title = '' ) {
+		$prefixed_term = $this->do_plugin_term( $plugin_name );
+
+		$args = array(
+			'post_title'     => $log,
+			'post_name'      => $this->prefix_slug( $log, $plugin_name ),
+			'post_type'      => self::CPT,
+			'comment_status' => 'closed',
+			'ping_status'    => 'closed',
+			'post_status'    => 'publish',
+		);
+
+		if ( ! empty( $session_title ) ) {
+			$existing_log = $this->check_existing_log( $plugin_name, $log );
+
+			// If there is not an existing log to attach session to, create it.
+			if ( false == $existing_log ) {
+				$existing_log = $this->create_post_with_terms( $plugin_name, $log );
+			}
+
+			$args['post_parent'] = $existing_log;
+			$args['post_title']  = $session_title;
+			$args['post_name']   = $session_title;
+		}
+
+		$post_id = wp_insert_post( $args );
+
+		if ( 0 == $post_id ) {
+			return false;
+		}
+
+		$add_terms = wp_set_post_terms(
+			$post_id,
+			$prefixed_term,
+			self::TAXONOMY
+		);
+
+		/*
+		 * A successful call to wp_set_post_terms will return an array. A failure could return
+		 * a WP_Error object, false, or a string.
+		 */
+		if ( ! is_array( $add_terms ) ) {
+			return false;
+		}
+
+		return $post_id;
+	}
+
+	/**
+	 * Will return a unique, prefixed string that represents a term for a plugin.
+	 *
+	 * @param  string $plugin_name The plugin's slug.
+	 *
+	 * @return string $prefixed_terms The prefixed term for the plugin.
+	 */
+	private function do_plugin_term( $plugin_name ) {
+		$prefixed_term = $this->prefix_slug( $plugin_name );
+
+		// If there is not currently a term (category) for this plugin, create it.
+		if ( ! term_exists( $prefixed_term, self::TAXONOMY ) ) {
+
+			// Create a taxonomy term that distinguishes current plugin from others.
+			$registered = wp_insert_term(
+				$plugin_name,
+				self::TAXONOMY,
+				array(
+					'slug' => $prefixed_term
+				)
+			);
+
+			// Check if taxonomy term was succeessfully added and return if not.
+			if ( is_wp_error( $registered ) ) {
+				return false;
+			}
+		}
+
+		return $prefixed_term;
 	}
 
 	/**
@@ -635,26 +699,53 @@ class WP_Logger {
 		if ( false != $logs && $logs->have_posts() ) {
 			?>
 
-			<div class="form-field">
-				<p>
-					<label for="log-select"><?php esc_html_e( 'Log', 'wp-logger' ); ?></label>
-					<br />
-					<select id="log-select" name="log-select">
-						<option value=""><?php esc_html_e( 'All Logs', 'wp-logger' ); ?></option>
+			<select id="log-select" name="log-select">
+				<option value=""><?php esc_html_e( 'All Logs', 'wp-logger' ); ?></option>
 
-						<?php
-							while ( $logs->have_posts() ) {
-								$logs->the_post();
-								$temp_log_id    = esc_attr( $post->ID );
-								$temp_log_title = esc_attr( $post->post_title );
-								echo "<option value='$temp_log_id'" . selected( $post->ID, $log_id, false ) . ">$temp_log_title</option>";
-							}
-						?>
-					</select>
-					<br />
-					<?php esc_html_e( 'Select a log for this plugin.', 'wp-loggger' ); ?>
-				</p>
-			</div>
+				<?php
+					while ( $logs->have_posts() ) {
+						$logs->the_post();
+						$temp_log_id    = esc_attr( $post->ID );
+						$temp_log_title = esc_attr( $post->post_title );
+						echo "<option value='$temp_log_id'" . selected( $post->ID, $log_id, false ) . ">$temp_log_title</option>";
+					}
+				?>
+			</select>
+
+			<?php
+		}
+	}
+
+	private function build_session_select( $log_id, $session_id = false ) {
+		global $post;
+
+		if ( intval( $log_id ) <= 0 ) {
+			return '';
+		}
+
+		$sessions = new WP_Query(
+			array(
+				'post_type'      => self::CPT,
+				'post_parent'    => intval( $log_id ),
+				'posts_per_page' => -1
+			)
+		);
+
+		if ( $sessions->have_posts() ) {
+			?>
+
+			<select id="session-select" name="session-select">
+				<option value=""><?php esc_html_e( 'Select a Session', 'wp-logger' ); ?></option>
+
+				<?php
+					while ( $sessions->have_posts() ) {
+						$sessions->the_post();
+						$temp_session_id    = esc_attr( $post->ID );
+						$temp_session_title = esc_attr( $post->post_title );
+						echo "<option value='$temp_session_id'" . selected( $post->ID, $session_id, false ) . ">$temp_session_title</option>";
+					}
+				?>
+			</select>
 
 			<?php
 		}
@@ -663,8 +754,8 @@ class WP_Logger {
 	/**
 	 * Will remove excess log entries for a plugin. This method is called by add_entry after adding an entry.
 	 *
-	 * @param  string $plugin_name The plugin's slug, as passed by developer.
-	 * @param  string $log_name The log for the current entry.
+	 * @param string $plugin_name The plugin's slug, as passed by developer.
+	 * @param string $log_name The log for the current entry.
 	 * @param int $log_id The log's post ID.
 	 */
 	private function limit_plugin_logs( $plugin_name, $log_name, $log_id ) {
@@ -773,6 +864,7 @@ class WP_Logger {
 	 *
 	 * @param  string $slug Plugin slug.
 	 * @param  string $plugin_name If set, slug will be prefixed with plugin_name
+	 *
 	 * @return string String that being with 'wp-logger-'
 	 */
 	private function prefix_slug( $slug, $plugin_name = '' ) {
@@ -787,6 +879,7 @@ class WP_Logger {
 	 * Will retrieve the developer email for the current plugin
 	 *
 	 * @param  string $plugin_name The unique string identifying this plugin. Also acts as term for plugin.
+	 *
 	 * @return string The developers email or empty string.
 	 */
 	private function get_plugin_email( $plugin_name ) {
@@ -840,8 +933,12 @@ class WP_Logger {
 			$args['comment_author'] = $_POST['plugin-select'];
 		}
 
-		if ( isset( $_POST['log-select'] ) ) {
+		if ( ! empty( $_POST['log-select'] ) ) {
 			$args['post_id'] = $_POST['log-select'];
+		}
+
+		if ( ! empty( $_POST['session-select'] ) ) {
+			$args['post_id'] = $_POST['session-select'];
 		}
 
 		// Initialize an array to return the entries and count.
@@ -876,25 +973,31 @@ class WP_Logger {
 	 * Return the posts (logs) for the posts with $plugin_term term
 	 *
 	 * @param  string $plugin_term The term that for the current plugin.
+	 *
 	 * @return false|WP_Query False if no $plugin_term is passed or WP_Query object containing the posts for this plugin.
 	 */
-	private function get_logs( $plugin_term ) {
+	private function get_logs( $plugin_term, $purge = false ) {
 		if ( ! $plugin_term ) {
 			return false;
 		}
 
-		$logs = new WP_Query(
-			array(
-				'post_type' => self::CPT,
-				'tax_query' => array(
-					array(
-						'taxonomy' => self::TAXONOMY,
-						'field'    => 'slug',
-						'terms'    => $this->prefix_slug( $plugin_term )
-					)
+		$args = array(
+			'post_type'      => self::CPT,
+			'posts_per_page' => -1,
+			'tax_query'      => array(
+				array(
+					'taxonomy' => self::TAXONOMY,
+					'field'    => 'slug',
+					'terms'    => $this->prefix_slug( $plugin_term )
 				)
 			)
 		);
+
+		if ( false == $purge ) {
+			$args['post_parent'] = 0;
+		}
+
+		$logs = new WP_Query( $args );
 
 		return $logs;
 	}
