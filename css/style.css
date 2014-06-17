@@ -19,5 +19,7 @@ td:nth-child( 1 ) {
 }
 
 @media only screen and ( min-width: 769px ) {
-
+	.send-email-form {
+		max-width: 50%;
+	}
 }

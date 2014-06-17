@@ -67,6 +67,9 @@ class WP_Logger {
 		// These actions handle displaying log and session selects via AJAX.
 		add_action( 'wp_ajax_get_logger_log_select',     array( $this, 'ajax_gen_log_select' ) );
 		add_action( 'wp_ajax_get_logger_session_select', array( $this, 'ajax_gen_session_select' ) );
+
+		// This registers an AJAX handler to process email logs.
+		add_action( 'wp_ajax_send_log_email',            array( $this, 'process_email_log' ) );
 	}
 
 	/**
@@ -358,6 +361,87 @@ class WP_Logger {
 	}
 
 	/**
+	 * AJAX callback to send a log as an email attachment.
+	 */
+	public function process_email_log() {
+		check_ajax_referer( 'wp_logger_generate_report', 'wp_logger_form_nonce' );
+
+		$entries = $this->get_entries();
+
+		if ( ! empty( $entries ) ) {
+
+			// Build an array of just the data that needs to be sent to the developer.
+			$data = array();
+
+			foreach ( $entries['entries'] as $entry ){
+
+				$data[] = array(
+					'id'           => $entry->comment_ID,
+					'log_severity' => $entry->user_id,
+					'log_msg'      => $entry->comment_content,
+					'log_date'     => $entry->comment_date,
+					'log_plugin'   => $entry->comment_author,
+				);
+			}
+
+			$plugin_email = isset( $_POST['email-logs'] ) ?  sanitize_email( $_POST['email-logs'] ) : '';
+			$current_site = get_option( 'home' );
+			$time         = time();
+
+			// Make sure that wp-content/wp-logger exists, if not, create it.
+			if ( ! is_dir( WP_CONTENT_DIR . '/wp-logger' ) ) {
+				mkdir( WP_CONTENT_DIR . '/wp-logger' );
+			}
+
+			// Test again to make sure that wp-content/wp-logger exists before attempting to open a file in the directory.
+			if ( is_dir( WP_CONTENT_DIR . '/wp-logger' ) ) {
+				$file = fopen( WP_CONTENT_DIR . "/wp-logger/{$time}.json",'w' );
+
+				/*
+				 * If the JSON file was created successfully, then let's send that as an attachment.
+				 * If the file was no created successfully, then attempt to send the logs directly within the email message.
+				 */
+				if ( false !== $file ) {
+					fwrite( $file, json_encode( $data ) );
+
+					$send_email = wp_mail(
+						$plugin_email,
+						sprintf( __( 'Logs from %s', 'wp-logger' ), $current_site ),
+						sprintf( __( 'Attached is a log in JSON format from %s', 'wp-logger' ), $current_site ),
+						'From: WP Logger Logs' . "\r\n",
+						array( WP_CONTENT_DIR . "/wp-logger/{$time}.json" )
+					);
+				} else {
+					$send_email = wp_mail(
+						$plugin_email,
+						sprintf( __( 'Logs from %s', 'wp-logger' ), $current_site ),
+						json_encode( $data ),
+						'From: WP Logger Logs' . "\r\n"
+					);
+				}
+
+				fclose( $file );
+			}
+		}
+
+		if( isset( $send_email ) && $send_email ) : ?>
+
+			<div class="updated">
+				<p><?php esc_html_e( 'Your message was sent successfully!', 'wp-logger' ); ?></p>
+			</div>
+
+		<?php else : ?>
+
+			<div class="error">
+				<p><?php esc_html_e( 'Your message failed to send.', 'wp-logger' ); ?></p>
+			</div>
+
+		<?php endif;
+
+		exit;
+	}
+
+	/**
 	 * Checks if there is an existing log for a plugin.
 	 *
 	 * @param  string $plugin_name The plugin's slug.
@@ -587,73 +671,6 @@ class WP_Logger {
 
 			for ( $i = 0; $i < $diff; $i++ ) {
 				wp_delete_comment( $comments[ $i ]->comment_ID, true );
-			}
-		}
-	}
-
-	/**
-	 * Will check if request to email log was sent from WordPress admin, then will attempt
-	 * to create a JSON log and send as an attachment. Falls back to sending JSON log
-	 * directly within email message.
-	 */
-	private function process_email_log() {
-		check_admin_referer( 'wp_logger_generate_report', 'wp_logger_form_nonce' );
-
-		$entries = $this->get_entries();
-
-		if ( ! empty( $entries ) ) {
-
-			// Build an array of just the data that needs to be sent to the developer.
-			$data = array();
-
-			foreach ( $entries['entries'] as $entry ){
-
-				$data[] = array(
-					'id'           => $entry->comment_ID,
-					'log_severity' => $entry->user_id,
-					'log_msg'      => $entry->comment_content,
-					'log_date'     => $entry->comment_date,
-					'log_plugin'   => $entry->comment_author,
-				);
-			}
-
-			$plugin_email = sanitize_email( $_POST['email-logs'] );
-			$current_site = get_option( 'home' );
-			$time         = time();
-
-			// Make sure that wp-content/wp-logger exists, if not, create it.
-			if ( ! is_dir( WP_CONTENT_DIR . '/wp-logger' ) ) {
-				mkdir( WP_CONTENT_DIR . '/wp-logger' );
-			}
-
-			// Test again to make sure that wp-content/wp-logger exists before attempting to open a file in the directory.
-			if ( is_dir( WP_CONTENT_DIR . '/wp-logger' ) ) {
-				$file = fopen( WP_CONTENT_DIR . "/wp-logger/{$time}.json",'w' );
-
-				/*
-				 * If the JSON file was created successfully, then let's send that as an attachment.
-				 * If the file was no created successfully, then attempt to send the logs directly within the email message.
-				 */
-				if ( false !== $file ) {
-					fwrite( $file, json_encode( $data ) );
-
-					$_POST['message_sent'] = wp_mail(
-						$plugin_email,
-						sprintf( __( 'Logs from %s', 'wp-logger' ), $current_site ),
-						sprintf( __( 'Attached is a log in JSON format from %s', 'wp-logger' ), $current_site ),
-						'From: WP Logger Logs' . "\r\n",
-						array( WP_CONTENT_DIR . "/wp-logger/{$time}.json" )
-					);
-				} else {
-					$_POST['message_sent'] = wp_mail(
-						$plugin_email,
-						sprintf( __( 'Logs from %s', 'wp-logger' ), $current_site ),
-						json_encode( $data ),
-						'From: WP Logger Logs' . "\r\n"
-					);
-				}
-
-				fclose( $file );
 			}
 		}
 	}

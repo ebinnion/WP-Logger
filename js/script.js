@@ -33,6 +33,10 @@ jQuery( document ).ready( function( $ ){
 		});
 	});
 
+	/*
+	 * Generate the session select whenever a user changes the log selection they would
+	 * like to view a report for.
+	 */
 	$( 'body' ).on( 'change', '#log-select', function(){
 		var newLogSelectVal = $(this).val();
 
@@ -57,8 +61,35 @@ jQuery( document ).ready( function( $ ){
 		});
 	});
 
-	$( '#send-logger-email' ).click( function() {
-		loggerForm.prepend( '<input type="hidden" name="send_logger_email" value="1" >' );
-		loggerForm.submit();
+	// Calls the process_email_log method to send a log as an email attachment.
+	$( 'body' ).on( 'click', '#send-logger-email', function(){
+		var formdata = $( '#logger-form' ).serialize(),
+			email    = $( '#email-results' ).val(),
+			p        = $( this ).parent(),
+			t        = $( this );
+
+		// Add spinner and disable button on click.
+		p.addClass( 'ajaxed' );
+		t.attr( 'disabled', 'disabled' );
+
+		formdata += '&action=send_log_email&email-logs=' + encodeURIComponent( email );
+
+		jQuery.post(
+			ajaxurl,
+			formdata,
+			function(response){
+
+				// Will return -1 if the ajax request fails
+				if( -1 != response ) {
+					$( '#email-response' ).html( response );
+				}
+			}
+		)
+		.always(function(){
+
+			// Whether the AJAX fails or succeeds, always remove the spinner and enable button.
+			p.removeClass( 'ajaxed' );
+			t.removeAttr( 'disabled' );
+		});
 	});
 });
