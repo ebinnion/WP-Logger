@@ -45,9 +45,9 @@ class WP_Logger {
 		self::$instance = $this;
 
 		// These actions setup the plugin and inject scripts and styles on our logs page.
-		add_action( 'init',                     array( $this, 'init' ), 1 );
-		add_action( 'admin_menu',               array( $this, 'add_menu_page' ) );
-		add_action( 'admin_footer',             array( $this, 'admin_footer' ) );
+		add_action( 'init',                  array( $this, 'init' ), 1 );
+		add_action( 'admin_menu',            array( $this, 'add_menu_page' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 
 		// These actions allow developers to add log entries, purge log entries for a plugin, and create/end sessions.
 		add_action( 'wp_logger_add',            array( $this, 'add_entry' ), 10, 4  );
@@ -342,124 +342,14 @@ class WP_Logger {
 	}
 
 	/**
-	 * Adds a hidden input field to the wp_logger_messages page and then submits the form. The hidden field
-	 * acts as a flag to send logs to an email. Also, will remove log select from pagewhen plugin select value is changed.
+	 * Enqueues styles and scripts for WP Logger only on WP Logger logs page.
+	 *
+	 * @param  string $hook The unique hook for the current admin page.
 	 */
-	function admin_footer() {
-		if ( isset( $_GET['page'] ) && 'wp_logger_messages' == $_GET['page'] ) {
-			?>
-
-			<script>
-				/* global wpCookies */
-
-				(function( $ ) {
-					var pluginSelect    = $( '#plugin-select' ),
-						loggerForm      = $( '#logger-form' ),
-						wrap            = $( '.wrap' ),
-						actions         = $( '.tablenav .actions.bulkactions' );
-
-					/*
-					 * Generate and display the log select whenever a user changes the plugin that
-					 * they would like to view a report for.
-					 */
-					pluginSelect.change( function() {
-						var newPluginSelectVal = pluginSelect.val();
-
-						actions.addClass( 'ajaxed' );
-
-						jQuery.post(
-							ajaxurl,
-							{
-								'action': 'get_logger_log_select',
-								'plugin_name': newPluginSelectVal
-							},
-							function(response){
-
-								// This is fired on successfully returning the log select
-								$( '#log-select-contain' ).html( response );
-								$( '#session-select-contain' ).html( '' );
-							}
-						)
-						.always(function(){
-
-							// Whether the AJAX fails or succeeds, always remove the spinner on completion.
-							actions.removeClass( 'ajaxed' );
-						});
-					});
-
-					$( 'body' ).on( 'change', '#log-select', function(){
-						var newLogSelectVal = $(this).val();
-
-						actions.addClass( 'ajaxed' );
-
-						jQuery.post(
-							ajaxurl,
-							{
-								'action': 'get_logger_session_select',
-								'log_select': newLogSelectVal
-							},
-							function(response){
-
-								// This is fired on successfully returning the log select
-								$( '#session-select-contain' ).html( response );
-							}
-						)
-						.always(function(){
-
-							// Whether the AJAX fails or succeeds, always remove the spinner on completion.
-							actions.removeClass( 'ajaxed' );
-						});
-					});
-
-					$( '#send-logger-email' ).click( function() {
-						loggerForm.prepend( '<input type="hidden" name="send_logger_email" value="1" >' );
-						loggerForm.submit();
-					});
-
-					// Adds the functionality for hiding the generate log report form.
-					$( '.wp-logger-collapse' ).click( function() {
-						wrap.toggleClass( 'hide-form' );
-
-						$( '.wp-logger-collapse' ).toggleClass( 'hidden' );
-
-						// Delete the `wp_logger_hide_form` cookie if the user has form showing.
-						if ( wrap.hasClass( 'hide-form' ) ) {
-							wpCookies.set( 'wp_logger_hide_form', '1', 604800 );
-						} else {
-							wpCookies.remove( 'wp_logger_hide_form', '' );
-						}
-					});
-
-				})( jQuery );
-			</script>
-
-			<style>
-				td:nth-child( 1 ) {
-					width: 50%!important;
-				}
-
-				.ajaxed {
-					padding-right: 20px!important;
-					background: url( '/wp-admin/images/spinner.gif' ) no-repeat right center;
-				}
-
-				@media only screen and ( max-width: 768px ) {
-					.tablenav.top .actions {
-						display: block;
-					}
-
-					.tablenav.top .actions select {
-						display: block;
-
-					}
-				}
-
-				@media only screen and ( min-width: 769px ) {
-
-				}
-			</style>
-
-			<?php
+	function enqueue_scripts( $hook ) {
+		if ( 'toplevel_page_wp_logger_messages' == $hook ) {
+			wp_enqueue_script( 'wp_logger', plugins_url( 'js/script.js', __FILE__ ), array( 'jquery' ) );
+			wp_enqueue_style( 'wp_logger', plugins_url( 'css/style.css', __FILE__ ) );
 		}
 	}
 
@@ -487,91 +377,7 @@ class WP_Logger {
 		$logger_table  = new WP_Logger_List_Table( $entries );
 		$logger_table->prepare_items();
 
-		?>
-
-		<div class="wrap">
-			<h2>
-				<?php esc_html_e( 'Plugin Logs', 'wp-logger' ); ?>
-			</h2>
-
-			<?php
-				/*
-				 * Check if email message was sent. If so, display a successful message on success or a
-				 * failure message on failure.
-				 */
-			?>
-			<?php if ( isset( $_POST['message_sent'] ) && $_POST['message_sent'] ) : ?>
-
-				<div class="updated">
-					<p><?php esc_html_e( 'Your message was sent successfully!', 'wp-logger' ); ?></p>
-				</div>
-
-			<?php elseif ( isset( $_POST['message_sent'] ) && ! $_POST['message_sent'] ) : ?>
-
-				<div class="error">
-					<p><?php esc_html_e( 'Your message failed to send.', 'wp-logger' ); ?></p>
-				</div>
-
-			<?php endif; ?>
-
-			<form method="post" id="logger-form" action="<?php echo admin_url( 'admin.php?page=wp_logger_messages' ); ?>">
-				<?php wp_nonce_field( 'wp_logger_generate_report', 'wp_logger_form_nonce' ) ?>
-
-				<div class="tablenav top">
-					<div class="alignleft actions">
-						<input type="text" placeholder="Search" name="search" value="<?php echo $search; ?>">
-					</div>
-				</div>
-
-				<div class="tablenav top">
-					<div class="alignleft actions bulkactions">
-						<select id="plugin-select" name="plugin-select">
-							<option value=""><?php esc_html_e( 'All Plugins', 'wp-logger' ); ?></option>
-
-							<?php
-								foreach ( $plugins as $plugin ) {
-									$temp_plugin_name = esc_attr( $plugin->name );
-									echo "<option value='$temp_plugin_name'" . selected( $plugin->name, $plugin_select, false ) . ">$temp_plugin_name</option>";
-								}
-							?>
-						</select>
-
-						<span id="log-select-contain">
-							<?php $this->build_log_select( $plugin_select, $log_id ); ?>
-						</span>
-
-						<span id="session-select-contain">
-							<?php $this->build_session_select( $log_id, $session_id ); ?>
-						</span>
-
-						<input type="submit" class="button button-primary" value="Generate Report">
-					</div>
-
-					<?php $logger_table->pagination( 'top' ); ?>
-					<br class="clear">
-				</div>
-
-				<table class="wp-list-table <?php echo implode( ' ', $logger_table->get_table_classes() ); ?>">
-					<thead>
-					<tr>
-						<?php $logger_table->print_column_headers(); ?>
-					</tr>
-					</thead>
-
-					<tfoot>
-					<tr>
-						<?php $logger_table->print_column_headers( false ); ?>
-					</tr>
-					</tfoot>
-
-					<tbody>
-						<?php $logger_table->display_rows_or_placeholder(); ?>
-					</tbody>
-				</table>
-			</form>
-		</div>
-
-		<?php
+		require_once( trailingslashit( dirname( __FILE__ ) ) . 'views/log-table.php' );
 	}
 
 	/**

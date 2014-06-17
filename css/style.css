@@ -1,0 +1,23 @@
+td:nth-child( 1 ) {
+	width: 50%!important;
+}
+
+.ajaxed {
+	padding-right: 20px!important;
+	background: url( '/wp-admin/images/spinner.gif' ) no-repeat right center;
+}
+
+@media only screen and ( max-width: 768px ) {
+	.tablenav.top .actions {
+		display: block;
+	}
+
+	.tablenav.top .actions select {
+		display: block;
+
+	}
+}
+
+@media only screen and ( min-width: 769px ) {
+
+}
