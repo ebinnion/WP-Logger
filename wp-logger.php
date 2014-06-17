@@ -191,27 +191,13 @@ class WP_Logger {
 			)
 		);
 
-		$labels = array(
-			'name'              => esc_html__( 'Plugins'        , 'wp-logger' ),
-			'singular_name'     => esc_html__( 'Plugin'         , 'wp-logger' ),
-			'search_items'      => esc_html__( 'Search Plugins' , 'wp-logger' ),
-			'all_items'         => esc_html__( 'All Plugins'    , 'wp-logger' ),
-			'parent_item'       => esc_html__( 'Parent Plugin'  , 'wp-logger' ),
-			'parent_item_colon' => esc_html__( 'Parent Plugin:' , 'wp-logger' ),
-			'edit_item'         => esc_html__( 'Edit Plugin'    , 'wp-logger' ),
-			'update_item'       => esc_html__( 'Update Plugin'  , 'wp-logger' ),
-			'add_new_item'      => esc_html__( 'Add New Plugin' , 'wp-logger' ),
-			'new_item_name'     => esc_html__( 'New Plugin Name', 'wp-logger' ),
-			'menu_name'         => esc_html__( 'Plugins'        , 'wp-logger' ),
-		);
-
 		register_taxonomy(
 			self::TAXONOMY,
 			self::CPT,
 			array(
-				'labels'            => $labels,
-				'show_in_nav_menus' => true,
-				'query_var'         => true,
+				'query_var' => false,
+				'public'    => false,
+				'rewrite'   => false,
 			)
 		);
 
