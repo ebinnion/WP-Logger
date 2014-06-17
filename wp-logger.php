@@ -44,17 +44,27 @@ class WP_Logger {
 
 		self::$instance = $this;
 
+		// These actions setup the plugin and inject scripts and styles on our logs page.
 		add_action( 'init',                     array( $this, 'init' ), 1 );
 		add_action( 'admin_menu',               array( $this, 'add_menu_page' ) );
 		add_action( 'admin_footer',             array( $this, 'admin_footer' ) );
+
+		// These actions allow developers to add log entries, purge log entries for a plugin, and create/end sessions.
 		add_action( 'wp_logger_add',            array( $this, 'add_entry' ), 10, 4  );
 		add_action( 'wp_logger_purge',          array( $this, 'purge_plugin_logs' ) );
 		add_action( 'wp_logger_create_session', array( $this, 'create_set_session' ), 10, 3 );
 		add_action( 'wp_logger_end_session',    array( $this, 'end_session' ) );
 
+		/*
+		 * This filter allows developers to retrieve the current version of WP Logger, and also serves
+		 * as a way for developers to check if WP Logger is installed.
+		 */
 		add_filter( 'wp_logger_version', array( $this, 'set_wp_logger_version' ) );
+
+		// This filter allows comments to be queried by comment_author, which is where a plugin's slug is stored.
 		add_filter( 'comments_clauses',  array( $this, 'add_comment_author' ), 10, 2 );
 
+		// These actions handle displaying log and session selects via AJAX.
 		add_action( 'wp_ajax_get_logger_log_select',     array( $this, 'ajax_gen_log_select' ) );
 		add_action( 'wp_ajax_get_logger_session_select', array( $this, 'ajax_gen_session_select' ) );
 	}
