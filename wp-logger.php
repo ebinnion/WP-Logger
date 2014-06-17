@@ -59,7 +59,7 @@ class WP_Logger {
 		 * This filter allows developers to retrieve the current version of WP Logger, and also serves
 		 * as a way for developers to check if WP Logger is installed.
 		 */
-		add_filter( 'wp_logger_version', array( $this, 'set_wp_logger_version' ) );
+		add_filter( 'wp_logger_version', array( $this, 'get_wp_logger_version' ) );
 
 		// This filter allows comments to be queried by comment_author, which is where a plugin's slug is stored.
 		add_filter( 'comments_clauses',  array( $this, 'add_comment_author' ), 10, 2 );
@@ -75,7 +75,7 @@ class WP_Logger {
 	 * @param  null
 	 * @return string The current version of WP Logger
 	 */
-	function set_wp_logger_version( $version ) {
+	function get_wp_logger_version( $version ) {
 		return '0.1';
 	}
 
