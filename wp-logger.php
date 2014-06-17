@@ -91,12 +91,6 @@ class WP_Logger {
 
 		$logs = $this->get_logs( $plugin_name, 'purge' );
 
-		// echo '<pre>';
-		// print_r($logs);
-		// echo '</pre>';
-
-		// exit;
-
 		if ( $logs->have_posts() ) {
 			while ( $logs->have_posts() ) {
 				$logs->the_post();
