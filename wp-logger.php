@@ -365,10 +365,7 @@ class WP_Logger {
 		$search        = isset( $_POST['search'] ) ? $_POST['search'] : '';
 		$hide_form     = isset( $_COOKIE['wp_logger_hide_form'] ) ? 'hide-form' : '';
 
-		$entries       = $this->get_entries();
-		$plugins       = $this->get_plugins();
-
-		$logger_table  = new WP_Logger_List_Table( $entries );
+		$logger_table  = new WP_Logger_List_Table( $this->get_entries() );
 		$logger_table->prepare_items();
 
 		require_once( trailingslashit( dirname( __FILE__ ) ) . 'views/log-table.php' );

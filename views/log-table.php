@@ -38,7 +38,7 @@
 					<option value=""><?php esc_html_e( 'All Plugins', 'wp-logger' ); ?></option>
 
 					<?php
-						foreach ( $plugins as $plugin ) {
+						foreach ( $this->get_plugins() as $plugin ) {
 							$temp_plugin_name = esc_attr( $plugin->name );
 							echo "<option value='$temp_plugin_name'" . selected( $plugin->name, $plugin_select, false ) . ">$temp_plugin_name</option>";
 						}
