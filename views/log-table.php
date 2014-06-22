@@ -7,8 +7,8 @@
 		<?php wp_nonce_field( 'wp_logger_generate_report', 'wp_logger_form_nonce' ) ?>
 		<input type="hidden" id="session-select" name="session-select" value="<?php echo $session_id; ?>">
 
-		<div class="tablenav top">
-			<div class="alignleft actions bulkactions">
+		<div class="tablenav top selects">
+			<div class="alignleft actions">
 				<select id="plugin-select" name="plugin-select">
 					<option value=""><?php esc_html_e( 'All Plugins', 'wp-logger' ); ?></option>
 

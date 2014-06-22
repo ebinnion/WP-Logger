@@ -12,6 +12,10 @@ td:nth-child( 1 ) {
 	float: left;
 }
 
+.tablenav.selects .actions {
+	width: 100%;
+}
+
 .tagchecklist {
 	margin-left: 0;
 }
@@ -32,6 +36,23 @@ td:nth-child( 1 ) {
 	.tablenav.top .actions select {
 		display: block;
 
+	}
+
+	#log-select-contain {
+		float: none;
+	}
+
+	.tablenav .actions .button {
+		margin: 18px 0 10px 0;
+	}
+
+	.tagchecklist {
+		margin: 18px 0;
+	}
+
+	.tagchecklist span {
+		font-size: 1em;
+		line-height: 2em;
 	}
 }
 
