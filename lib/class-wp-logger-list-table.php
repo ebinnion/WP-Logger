@@ -137,12 +137,12 @@ class WP_Logger_List_Table extends WP_List_Table {
 		if( ! empty( $this->items ) ) {
 			foreach ( $this->items as $item ) {
 				$data[] = array(
-					'id'          => $item->the_ID,
-					'log_severity'=> $item->severity,
-					'log_msg'     => $item->message,
-					'log_date'    => $item->the_date,
-					'log_plugin'  => $item->log_plugin,
-					'session'     => $item->session
+					'id'           => $item->the_ID,
+					'log_severity' => $item->severity,
+					'log_msg'      => $item->message,
+					'log_date'     => $item->the_date,
+					'log_plugin'   => $item->log_plugin,
+					'session'      => $item->session
 				);
 			}
 		}
