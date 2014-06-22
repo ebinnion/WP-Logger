@@ -382,13 +382,13 @@ class WP_Logger {
 			$data = array();
 
 			foreach ( $entries['entries'] as $entry ){
-
 				$data[] = array(
-					'id'           => $entry->comment_ID,
-					'log_severity' => $entry->user_id,
-					'log_msg'      => $entry->comment_content,
-					'log_date'     => $entry->comment_date,
-					'log_plugin'   => $entry->comment_author,
+					'id'           => $entry->the_ID,
+					'log_severity' => $entry->severity,
+					'log_msg'      => $entry->message,
+					'log_date'     => $entry->the_date,
+					'log_plugin'   => $entry->log_plugin,
+					'session'      => $entry->session
 				);
 			}
 
