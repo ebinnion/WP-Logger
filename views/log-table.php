@@ -5,12 +5,7 @@
 
 	<form method="post" id="logger-form" action="<?php echo admin_url( 'admin.php?page=wp_logger_messages' ); ?>">
 		<?php wp_nonce_field( 'wp_logger_generate_report', 'wp_logger_form_nonce' ) ?>
-
-		<div class="tablenav top">
-			<div class="alignleft actions">
-				<input type="text" placeholder="Search" name="search" value="<?php echo $search; ?>">
-			</div>
-		</div>
+		<input type="hidden" id="session-select" name="session-select" value="<?php echo $session_id; ?>">
 
 		<div class="tablenav top">
 			<div class="alignleft actions bulkactions">
@@ -29,9 +24,19 @@
 					<?php $this->build_log_select( $plugin_select, $log_id ); ?>
 				</span>
 
-				<span id="session-select-contain">
-					<?php $this->build_session_select( $log_id, $session_id ); ?>
-				</span>
+				<?php if ( ! empty( $session_id ) ) : ?>
+					<div class="tagchecklist">
+						<span>
+							<a class="clear-session ntdelbutton">X</a>&nbsp;<?php echo get_the_title( $session_id ); ?>
+						</span>
+					</div>
+				<?php endif; ?>
+			</div>
+		</div>
+
+		<div class="tablenav top">
+			<div class="alignleft actions">
+				<input type="text" placeholder="Search" name="search" value="<?php echo $search; ?>">
 
 				<input type="submit" class="button button-primary" value="<?php esc_html_e( 'Generate Report', 'wp-logger' ); ?>">
 			</div>

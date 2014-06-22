@@ -1,8 +1,8 @@
 /* global wpCookies */
 
 jQuery( document ).ready( function( $ ){
-	var wrap            = $( '.wrap' ),
-		actions         = $( '.tablenav .actions.bulkactions' );
+	var wrap    = $( '.wrap' ),
+		actions = $( '.tablenav .actions.bulkactions' );
 
 	/*
 	 * Generate and display the log select whenever a user changes the plugin that
@@ -24,34 +24,6 @@ jQuery( document ).ready( function( $ ){
 				// This is fired on successfully returning the log select
 				$( '#log-select-contain' ).html( response );
 				$( '#session-select-contain' ).html( '' );
-			}
-		)
-		.always(function(){
-
-			// Whether the AJAX fails or succeeds, always remove the spinner on completion.
-			actions.removeClass( 'ajaxed' );
-		});
-	});
-
-	/*
-	 * Generate the session select whenever a user changes the log selection they would
-	 * like to view a report for.
-	 */
-	$( 'body' ).on( 'change', '#log-select', function(){
-		var newLogSelectVal = $(this).val();
-
-		actions.addClass( 'ajaxed' );
-
-		jQuery.post(
-			ajaxurl,
-			{
-				'action': 'get_logger_session_select',
-				'log_select': newLogSelectVal
-			},
-			function(response){
-
-				// This is fired on successfully returning the log select
-				$( '#session-select-contain' ).html( response );
 			}
 		)
 		.always(function(){
@@ -91,5 +63,11 @@ jQuery( document ).ready( function( $ ){
 			p.removeClass( 'ajaxed' );
 			t.removeAttr( 'disabled' );
 		});
+	});
+
+	// Removes the session select input when a user removes the session tag.
+	$( 'body' ).on( 'click', '.clear-session', function(e){
+		$( '.tagchecklist' ).remove();
+		$( '#session-select' ).remove();
 	});
 });

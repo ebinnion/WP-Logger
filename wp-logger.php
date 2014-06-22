@@ -52,7 +52,7 @@ class WP_Logger {
 		// These actions allow developers to add log entries, purge log entries for a plugin, and create/end sessions.
 		add_action( 'wp_logger_add',            array( $this, 'add_entry' ), 10, 4  );
 		add_action( 'wp_logger_purge',          array( $this, 'purge_plugin_logs' ) );
-		add_action( 'wp_logger_create_session', array( $this, 'create_set_session' ), 10, 3 );
+		add_action( 'wp_logger_create_session', array( $this, 'create_set_session' ), 10, 4 );
 		add_action( 'wp_logger_end_session',    array( $this, 'end_session' ) );
 
 		/*
@@ -149,9 +149,16 @@ class WP_Logger {
 			'user_id'              => intval( $severity ),
 		);
 
+		if ( self::$session_post ) {
+			$comment_data['comment_parent'] = 1;
+		}
+
 		$comment_id = wp_insert_comment( wp_filter_comment( $comment_data ) );
 
-		$this->limit_plugin_logs( $plugin_name, $log, $post_id );
+		// Do not limit the logs for a session, as this might break the logic for the session.
+		if ( ! self::$session_post ) {
+			$this->limit_plugin_logs( $plugin_name, $log, $post_id );
+		}
 
 		// Returns true if comment/entry was successfully added and false on falure.
 		return (boolean) $comment_id;
@@ -231,7 +238,7 @@ class WP_Logger {
 		}
 
 		// This will copy values from the $_GET superglobal to the $_POST superglobal which allows the use of the WP_List_Table class.
-		$copy_get = array( 'search', 'plugin-select', 'log-select' );
+		$copy_get = array( 'search', 'plugin-select', 'log-select', 'session-select' );
 		foreach ( $copy_get as $do_copy ) {
 			if ( isset( $_GET[ $do_copy ] ) ) {
 				$_POST[ $do_copy ] = $_GET[ $do_copy ];
@@ -284,8 +291,8 @@ class WP_Logger {
 	 *
 	 * @return boolean               True if session was successfully set, false otherwise.
 	 */
-	function create_set_session( $plugin_name, $log, $session_title ) {
-		$post_id = $this->create_post_with_terms( $plugin_name, $log, $session_title );
+	function create_set_session( $plugin_name, $log, $session_title, $severity = 0 ) {
+		$post_id = $this->create_post_with_terms( $plugin_name, $log, $session_title, $severity );
 
 		if( false == $post_id ) {
 			return false;
@@ -357,6 +364,7 @@ class WP_Logger {
 		$logger_table  = new WP_Logger_List_Table( $this->get_entries() );
 		$logger_table->prepare_items();
 
+		// Load the different views to build the log table page.
 		require_once( trailingslashit( dirname( __FILE__ ) ) . 'views/log-table.php' );
 	}
 
@@ -487,7 +495,7 @@ class WP_Logger {
 	 *
 	 * @return boolean|int           False on failure or post_id on success.
 	 */
-	private function create_post_with_terms( $plugin_name, $log, $session_title = '' ) {
+	private function create_post_with_terms( $plugin_name, $log, $session_title = '', $severity = 0 ) {
 		$prefixed_term = $this->do_plugin_term( $plugin_name );
 
 		$args = array(
@@ -507,9 +515,10 @@ class WP_Logger {
 				$existing_log = $this->create_post_with_terms( $plugin_name, $log );
 			}
 
-			$args['post_parent'] = $existing_log;
-			$args['post_title']  = $session_title;
-			$args['post_name']   = $session_title;
+			$args['post_parent']  = $existing_log;
+			$args['post_title']   = $session_title;
+			$args['post_excerpt'] = $plugin_name;
+			$args['menu_order']   = $severity;
 		}
 
 		$post_id = wp_insert_post( $args );
@@ -711,78 +720,108 @@ class WP_Logger {
 	/**
 	 * Returns an array of logger messages (comments) and the count of those entries.
 	 *
-	 * @return array $args {
+	 * @global $wpdb Global instantiation of wpdb class.
+	 *
+	 * @return array {
 	 *     int $count The number of entries that fit the paraemters.
 	 *     array $entries An array of comment comment rows.
 	 * }
 	 */
 	private function get_entries() {
-		$log_query = new WP_Comment_Query;
+		global $wpdb;
 
-		// The CPT slug is stored in comment status, so we are querying for comment status here.
-		$args = array(
-			'status' => self::CPT,
-		);
+		$post_where = "post_type = 'wp-logger' AND post_parent != 0";
+		$comment_where = "comment_approved = 'wp-logger'";
+
+		if ( ! empty( $_POST['session-select'] ) ) {
+			$comment_where .= $wpdb->prepare( " AND comment_post_ID = %d AND comment_parent = 1", $_POST['session-select'] );
+		} else {
+			$comment_where .= ' AND comment_parent = 0';
+		}
 
 		if ( isset( $_GET['orderby'] ) ) {
-
 			if ( 'log_plugin' == $_GET['orderby'] ) {
-				$args['orderby'] = 'comment_author';
+				$args['orderby'] = 'log_plugin';
 			} else if ( 'log_date' == $_GET['orderby'] ) {
-				$args['orderby'] = 'comment_date';
+				$args['orderby'] = 'the_date';
 			} else if ( 'log_severity' == $_GET['orderby'] ) {
-				$args['orderby'] = 'user_id';
+				$args['orderby'] = 'severity';
 			}
+		} else {
+			$args['orderby'] = 'the_date';
+		}
 
-			if ( isset( $_GET['order'] ) ) {
-				$args['order'] = $_GET['order'];
-			} else {
-				$args['order'] = 'desc';
-			}
+		if ( isset( $_GET['order'] ) ) {
+			$args['order'] = $_GET['order'];
+		} else {
+			$args['order'] = 'desc';
 		}
 
 		if ( ! empty( $_POST['search'] ) ) {
-			$args['search'] = $_POST['search'];
+			$post_where .= $wpdb->prepare( " AND ( {$wpdb->posts}.post_title LIKE %s )", '%'.$_POST['search'].'%' );
+			$comment_where .= $wpdb->prepare( " AND ( {$wpdb->comments}.comment_content LIKE %s OR {$wpdb->comments}.comment_author LIKE %s )", '%'.$_POST['search'].'%', '%'.$_POST['search'].'%' );
 		}
+
+		$args['join'] = '';
 
 		if ( ! empty( $_POST['plugin-select'] ) ) {
-			$args['comment_author'] = $_POST['plugin-select'];
+			// $args['comment_author'] = $_POST['plugin-select'];
+			$term = get_term_by( 'slug', $this->prefix_slug( $_POST['plugin-select'] ), self::TAXONOMY );
+
+			$post_where .= $wpdb->prepare( " AND (wp_term_relationships.term_taxonomy_id IN (%d))", intval( $term->term_id ) );
+			$comment_where .= $wpdb->prepare( " AND comment_author = %s", $_POST['plugin-select'] );
+
+			$args['join'] = 'INNER JOIN wp_term_relationships ON wp_posts.ID = wp_term_relationships.object_id ';
 		}
 
-		if ( ! empty( $_POST['log-select'] ) ) {
-			$args['post_id'] = $_POST['log-select'];
+		if ( ! empty( $_POST['log-select'] ) && empty( $_POST['session-select'] ) ) {
+			$comment_where .= $wpdb->prepare( " AND comment_post_ID = %d", $_POST['log-select'] );
+			$post_where .= $wpdb->prepare( " AND post_parent = %d", $_POST['log-select'] );
 		}
 
-		if ( ! empty( $_POST['session-select'] ) ) {
-			$args['post_id'] = $_POST['session-select'];
+		if ( isset( $_GET['paged'] ) && intval( $_GET['paged'] ) > 1 ) {
+			$args['limit'] = $wpdb->prepare( " LIMIT 20 OFFSET %d", ( intval( $_GET['paged'] ) - 1 ) * 20 );
+		} else {
+			$args['limit'] = " LIMIT 20";
 		}
 
-		// Initialize an array to return the entries and count.
-		$return = array();
+		$session_select = "SELECT
+				ID AS the_ID,
+				menu_order AS severity,
+				post_title AS message,
+				post_date AS the_date,
+				post_excerpt AS log_plugin,
+				1 AS session
+			FROM
+				$wpdb->posts
+			{$args['join']}
+			WHERE
+				{$post_where}
+			UNION ";
 
-		// Get the count of all comments that fit these arguments.
-		$args['count']   = true;
-		$return['count'] = $log_query->query( $args );
+		$sql = "SELECT
+				comment_ID AS the_ID,
+				user_ID AS severity,
+				comment_content AS message,
+				comment_date AS the_date,
+				comment_author AS log_plugin,
+				0 AS session
+			FROM
+				{$wpdb->comments}
+			WHERE
+				{$comment_where}
+			ORDER BY
+			{$args['orderby']}
+			{$args['order']}, the_ID ASC";
 
-
-		$args['count'] = false;
-
-		// If sending an email of logs, then return as many entries as possible.
-		if ( ! isset( $_POST['send_logger_email'] ) ) {
-
-			// Get up to 20 of entries that match parameters.
-			$args['number'] = 20;
-
-			// Update the offset value based on what page query is running on.
-			if ( isset( $_GET['paged'] ) && intval( $_GET['paged'] ) > 1 ) {
-				$args['offset'] = ( intval( $_GET['paged'] ) - 1 ) * 20;
-			}
+		if ( empty( $_POST['session-select'] ) ) {
+			$sql = $session_select . $sql;
 		}
 
-		// Only return the first 20 of the comments that fit these arguments
-		$return['entries'] = $log_query->query( $args );
-
-		return $return;
+		return array(
+			'entries' => $wpdb->get_results( "{$sql} {$args['limit']}" ),
+			'count'   => $wpdb->query( $sql )
+		);
 	}
 
 	/**

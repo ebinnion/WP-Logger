@@ -44,6 +44,10 @@ class WP_Logger_List_Table extends WP_List_Table {
 		if( ! empty( $_POST['log-select'] ) && ! isset( $_GET['log-select'] ) ) {
 			$this->custom_query_string .= "&log-select={$_POST['log-select']}";
 		}
+
+		if( ! empty( $_POST['session-select'] ) && ! isset( $_GET['session-select'] ) ) {
+			$this->custom_query_string .= "&session-select={$_POST['session-select']}";
+		}
 	}
 
 	/**
@@ -133,11 +137,12 @@ class WP_Logger_List_Table extends WP_List_Table {
 		if( ! empty( $this->items ) ) {
 			foreach ( $this->items as $item ) {
 				$data[] = array(
-					'id'          => $item->comment_ID,
-					'log_severity'=> $item->user_id,
-					'log_msg'     => $item->comment_content,
-					'log_date'    => $item->comment_date,
-					'log_plugin'  => $item->comment_author,
+					'id'          => $item->the_ID,
+					'log_severity'=> $item->severity,
+					'log_msg'     => $item->message,
+					'log_date'    => $item->the_date,
+					'log_plugin'  => $item->log_plugin,
+					'session'     => $item->session
 				);
 			}
 		}
@@ -325,7 +330,14 @@ class WP_Logger_List_Table extends WP_List_Table {
 	 * @return @string The log message for the current comment.
 	 */
 	public function column_log_msg( $item ) {
-		return $item['log_msg'];
+		if( 1 == $item['session'] ) {
+			$session_url = admin_url( 'admin.php?page=wp_logger_messages&session-select=' . $item['id'] . $this->custom_query_string );
+			$message = "<a href='{$session_url}' class='thickbox'>{$item['log_msg']}</a>";
+		} else {
+			$message = $item['log_msg'];
+		}
+
+		return $message;
 	}
 
 	/**

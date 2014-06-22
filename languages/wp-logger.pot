@@ -2,9 +2,9 @@
 # This file is distributed under the same license as the WP Logger package.
 msgid ""
 msgstr ""
-"Project-Id-Version: WP Logger 0.1\n"
+"Project-Id-Version: WP Logger 0.2\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/wp-logger\n"
-"POT-Creation-Date: 2014-06-09 03:55:46+00:00\n"
+"POT-Creation-Date: 2014-06-22 04:20:24+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -47,38 +47,38 @@ msgid "%s pending"
 msgstr ""
 
 #: lib/class-wp-list-table-copy.php:531 lib/class-wp-list-table-copy.php:946
-#: lib/class-wp-logger-list-table.php:157
+#: lib/class-wp-logger-list-table.php:164
 msgid "1 item"
 msgid_plural "%s items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/class-wp-list-table-copy.php:549 lib/class-wp-logger-list-table.php:175
+#: lib/class-wp-list-table-copy.php:549 lib/class-wp-logger-list-table.php:182
 msgid "Go to the first page"
 msgstr ""
 
-#: lib/class-wp-list-table-copy.php:556 lib/class-wp-logger-list-table.php:182
+#: lib/class-wp-list-table-copy.php:556 lib/class-wp-logger-list-table.php:189
 msgid "Go to the previous page"
 msgstr ""
 
-#: lib/class-wp-list-table-copy.php:565 lib/class-wp-logger-list-table.php:191
+#: lib/class-wp-list-table-copy.php:565 lib/class-wp-logger-list-table.php:198
 msgid "Current page"
 msgstr ""
 
-#: lib/class-wp-list-table-copy.php:571 lib/class-wp-logger-list-table.php:197
+#: lib/class-wp-list-table-copy.php:571 lib/class-wp-logger-list-table.php:204
 msgctxt "paging"
 msgid "%1$s of %2$s"
 msgstr ""
 
-#: lib/class-wp-list-table-copy.php:575 lib/class-wp-logger-list-table.php:201
+#: lib/class-wp-list-table-copy.php:575 lib/class-wp-logger-list-table.php:208
 msgid "Go to the next page"
 msgstr ""
 
-#: lib/class-wp-list-table-copy.php:582 lib/class-wp-logger-list-table.php:208
+#: lib/class-wp-list-table-copy.php:582 lib/class-wp-logger-list-table.php:215
 msgid "Go to the last page"
 msgstr ""
 
-#: lib/class-wp-list-table-copy.php:718 lib/class-wp-logger-list-table.php:251
+#: lib/class-wp-list-table-copy.php:718 lib/class-wp-logger-list-table.php:258
 msgid "Select All"
 msgstr ""
 
@@ -90,164 +90,108 @@ msgstr ""
 msgid "logs"
 msgstr ""
 
-#: lib/class-wp-logger-list-table.php:88
+#: lib/class-wp-logger-list-table.php:94
 msgid "Log Message"
 msgstr ""
 
-#: lib/class-wp-logger-list-table.php:89
+#: lib/class-wp-logger-list-table.php:95
 msgid "Severity"
 msgstr ""
 
-#: lib/class-wp-logger-list-table.php:90 wp-logger.php:215 wp-logger.php:493
+#: lib/class-wp-logger-list-table.php:96
 msgid "Plugin"
 msgstr ""
 
-#: lib/class-wp-logger-list-table.php:91
+#: lib/class-wp-logger-list-table.php:97
 msgid "Date"
 msgstr ""
 
-#: lib/class-wp-logger-list-table.php:406
-msgid "Delete"
-msgstr ""
-
-#: wp-logger.php:37
-msgid "The WP_Logger class has already been loaded."
-msgstr ""
-
-#: wp-logger.php:189
-msgid "Logs"
-msgstr ""
-
-#: wp-logger.php:190 wp-logger.php:516
-msgid "Log"
-msgstr ""
-
-#: wp-logger.php:191 wp-logger.php:192 wp-logger.php:194
-msgid "Add New Log"
-msgstr ""
-
-#: wp-logger.php:193
-msgid "Edit Log"
-msgstr ""
-
-#: wp-logger.php:195
-msgid "View Log"
-msgstr ""
-
-#: wp-logger.php:196
-msgid "Search Logs"
-msgstr ""
-
-#: wp-logger.php:197
-msgid "No logs found"
-msgstr ""
-
-#: wp-logger.php:198
-msgid "No logs found in trash"
-msgstr ""
-
-#: wp-logger.php:214 wp-logger.php:224
-msgid "Plugins"
-msgstr ""
-
-#: wp-logger.php:216
-msgid "Search Plugins"
-msgstr ""
-
-#: wp-logger.php:217 wp-logger.php:496
-msgid "All Plugins"
-msgstr ""
-
-#: wp-logger.php:218
-msgid "Parent Plugin"
-msgstr ""
-
-#: wp-logger.php:219
-msgid "Parent Plugin:"
-msgstr ""
-
-#: wp-logger.php:220
-msgid "Edit Plugin"
-msgstr ""
-
-#: wp-logger.php:221
-msgid "Update Plugin"
-msgstr ""
-
-#: wp-logger.php:222
-msgid "Add New Plugin"
-msgstr ""
-
-#: wp-logger.php:223
-msgid "New Plugin Name"
-msgstr ""
-
-#: wp-logger.php:277 wp-logger.php:278 wp-logger.php:443
+#: views/log-table.php:3 wp-logger.php:254 wp-logger.php:255
 msgid "Plugin Logs"
 msgstr ""
 
-#: wp-logger.php:444
-msgid "Collapse Report Form"
+#: views/log-table.php:13
+msgid "All Plugins"
 msgstr ""
 
-#: wp-logger.php:445
-msgid "Show Report Form"
-msgstr ""
-
-#: wp-logger.php:457
-msgid "Your message was sent successfully!"
-msgstr ""
-
-#: wp-logger.php:463
-msgid "Your message failed to send."
-msgstr ""
-
-#: wp-logger.php:482
-msgid "Generate Log Report"
-msgstr ""
-
-#: wp-logger.php:485
-msgid "Search"
-msgstr ""
-
-#: wp-logger.php:506
-msgid "Select a plugin to view logs for."
-msgstr ""
-
-#: wp-logger.php:519
-msgid "All Logs"
-msgstr ""
-
-#: wp-logger.php:531
-msgid "Select a log for this plugin."
-msgstr ""
-
-#: wp-logger.php:539
+#: views/log-table.php:41
 msgid "Generate Report"
 msgstr ""
 
-#: wp-logger.php:547
+#: views/log-table.php:67
 msgid "Email Results"
 msgstr ""
 
-#: wp-logger.php:549
+#: views/log-table.php:72
 msgid "You can easily email the current log report that you have generated by entering an email below and clicking send!"
 msgstr ""
 
-#: wp-logger.php:554
-msgid "Enter an email above to email a log."
+#: views/log-table.php:74
+msgid "Email"
 msgstr ""
 
-#: wp-logger.php:558
+#: views/log-table.php:79
 msgid "Send"
 msgstr ""
 
-#: wp-logger.php:618 wp-logger.php:626
+#: wp-logger.php:42
+msgid "The WP_Logger class has already been loaded."
+msgstr ""
+
+#: wp-logger.php:180
+msgid "Logs"
+msgstr ""
+
+#: wp-logger.php:181
+msgid "Log"
+msgstr ""
+
+#: wp-logger.php:182 wp-logger.php:183 wp-logger.php:185
+msgid "Add New Log"
+msgstr ""
+
+#: wp-logger.php:184
+msgid "Edit Log"
+msgstr ""
+
+#: wp-logger.php:186
+msgid "View Log"
+msgstr ""
+
+#: wp-logger.php:187
+msgid "Search Logs"
+msgstr ""
+
+#: wp-logger.php:188
+msgid "No logs found"
+msgstr ""
+
+#: wp-logger.php:189
+msgid "No logs found in trash"
+msgstr ""
+
+#: wp-logger.php:417 wp-logger.php:425
 msgid "Logs from %s"
 msgstr ""
 
-#: wp-logger.php:619
+#: wp-logger.php:418
 msgid "Attached is a log in JSON format from %s"
+msgstr ""
+
+#: wp-logger.php:438
+msgid "Your message was sent successfully!"
+msgstr ""
+
+#: wp-logger.php:444
+msgid "Your message failed to send."
+msgstr ""
+
+#: wp-logger.php:595
+msgid "All Logs"
+msgstr ""
+
+#: wp-logger.php:630
+msgid "Select a Session"
 msgstr ""
 #. Plugin Name of the plugin/theme
 msgid "WP Logger"

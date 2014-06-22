@@ -7,6 +7,23 @@ td:nth-child( 1 ) {
 	background: url( '/wp-admin/images/spinner.gif' ) no-repeat right center;
 }
 
+#log-select-contain {
+	display: inline-block;
+	float: left;
+}
+
+.tagchecklist {
+	margin-left: 0;
+}
+
+.tagchecklist span {
+	padding-left: 16px;
+}
+
+.tagchecklist span a {
+	margin-left: -16px;
+}
+
 @media only screen and ( max-width: 768px ) {
 	.tablenav.top .actions {
 		display: block;
