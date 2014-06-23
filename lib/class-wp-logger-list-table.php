@@ -33,19 +33,19 @@ class WP_Logger_List_Table extends WP_List_Table {
 
 		$this->custom_query_string = '';
 
-		if( ! empty( $_POST['search'] ) && ! isset( $_GET['search'] ) ) {
+		if ( ! empty( $_POST['search'] ) && ! isset( $_GET['search'] ) ) {
 			$this->custom_query_string .= "&search={$_POST['search']}";
 		}
 
-		if( ! empty( $_POST['plugin-select'] ) && ! isset( $_GET['plugin-select'] ) ) {
+		if ( ! empty( $_POST['plugin-select'] ) && ! isset( $_GET['plugin-select'] ) ) {
 			$this->custom_query_string .= "&plugin-select={$_POST['plugin-select']}";
 		}
 
-		if( ! empty( $_POST['log-select'] ) && ! isset( $_GET['log-select'] ) ) {
+		if ( ! empty( $_POST['log-select'] ) && ! isset( $_GET['log-select'] ) ) {
 			$this->custom_query_string .= "&log-select={$_POST['log-select']}";
 		}
 
-		if( ! empty( $_POST['session-select'] ) && ! isset( $_GET['session-select'] ) ) {
+		if ( ! empty( $_POST['session-select'] ) && ! isset( $_GET['session-select'] ) ) {
 			$this->custom_query_string .= "&session-select={$_POST['session-select']}";
 		}
 	}
@@ -134,7 +134,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 	private function table_data() {
 		$data = array();
 
-		if( ! empty( $this->items ) ) {
+		if ( ! empty( $this->items ) ) {
 			foreach ( $this->items as $item ) {
 				$data[] = array(
 					'id'           => $item->the_ID,
@@ -330,7 +330,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 	 * @return @string The log message for the current comment.
 	 */
 	public function column_log_msg( $item ) {
-		if( 1 == $item['session'] ) {
+		if ( 1 == $item['session'] ) {
 			$session_url = esc_url( admin_url( 'admin.php?page=wp_logger_messages&session-select=' . $item['id'] . $this->custom_query_string ) );
 			$message = "<a href='{$session_url}' class='thickbox'>{$item['log_msg']}</a>";
 		} else {
