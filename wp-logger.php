@@ -108,8 +108,10 @@ class WP_Logger {
 	 *
 	 * @global WP_Post $post The global WP_Post object.
 	 *
-	 * @param  string $log String identifying this plugin.
-	 * @param  string $plugin_name The plugin's slug.
+	 * @param string $plugin_name The plugin's slug.
+	 * @param string $log String identifying this plugin.
+	 * @param string $message The message to log
+	 * @param int    $severity The importance of the logged message.
 	 *
 	 * @return bool Returns true if entry was successfully added and false if entry failed.
 	 */
@@ -285,9 +287,10 @@ class WP_Logger {
 	 * Create a session that is used to group all entries until another session is created or until
 	 * session is destroyed.
 	 *
-	 * @param  string $plugin_name   The plugin's slug
-	 * @param  int    $log           The log to assign the session to.
-	 * @param  string $session_title The session's title.
+	 * @param string $plugin_name   The plugin's slug
+	 * @param int    $log           The log to assign the session to.
+	 * @param string $session_title The session's title.
+	 * @param int    $severity      The importance of the logged session.
 	 *
 	 * @return boolean               True if session was successfully set, false otherwise.
 	 */
@@ -489,9 +492,10 @@ class WP_Logger {
 	/**
 	 * Creates a post and sets the terms for the post.
 	 *
-	 * @param  string $plugin_name   The plugin's slug
-	 * @param  int    $log           The post ID for the log.
-	 * @param  string $session_title The name of the session title.
+	 * @param string $plugin_name   The plugin's slug
+	 * @param int    $log           The post ID for the log.
+	 * @param string $session_title The name of the session title.
+	 * @param int    $severity      The importance of the logged session.
 	 *
 	 * @return boolean|int           False on failure or post_id on success.
 	 */
@@ -600,41 +604,6 @@ class WP_Logger {
 						$temp_log_id    = esc_attr( $post->ID );
 						$temp_log_title = esc_attr( $post->post_title );
 						echo "<option value='$temp_log_id'" . selected( $post->ID, $log_id, false ) . ">$temp_log_title</option>";
-					}
-				?>
-			</select>
-
-			<?php
-		}
-	}
-
-	private function build_session_select( $log_id, $session_id = false ) {
-		global $post;
-
-		if ( intval( $log_id ) <= 0 ) {
-			return '';
-		}
-
-		$sessions = new WP_Query(
-			array(
-				'post_type'      => self::CPT,
-				'post_parent'    => intval( $log_id ),
-				'posts_per_page' => -1
-			)
-		);
-
-		if ( $sessions->have_posts() ) {
-			?>
-
-			<select id="session-select" name="session-select">
-				<option value=""><?php esc_html_e( 'Select a Session', 'wp-logger' ); ?></option>
-
-				<?php
-					while ( $sessions->have_posts() ) {
-						$sessions->the_post();
-						$temp_session_id    = esc_attr( $post->ID );
-						$temp_session_title = esc_attr( $post->post_title );
-						echo "<option value='$temp_session_id'" . selected( $post->ID, $session_id, false ) . ">$temp_session_title</option>";
 					}
 				?>
 			</select>
