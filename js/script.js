@@ -2,7 +2,7 @@
 
 jQuery( document ).ready( function( $ ){
 	var wrap    = $( '.wrap' ),
-		actions = $( '.tablenav .actions.bulkactions' );
+		ajaxContain = $( '#ajax' );
 
 	/*
 	 * Generate and display the log select whenever a user changes the plugin that
@@ -11,7 +11,7 @@ jQuery( document ).ready( function( $ ){
 	$( 'body' ).on( 'change', '#plugin-select', function(){
 		var newPluginSelectVal = $(this).val();
 
-		actions.addClass( 'ajaxed' );
+		ajaxContain.addClass( 'ajaxed' );
 
 		jQuery.post(
 			ajaxurl,
@@ -29,7 +29,7 @@ jQuery( document ).ready( function( $ ){
 		.always(function(){
 
 			// Whether the AJAX fails or succeeds, always remove the spinner on completion.
-			actions.removeClass( 'ajaxed' );
+			ajaxContain.removeClass( 'ajaxed' );
 		});
 	});
 
