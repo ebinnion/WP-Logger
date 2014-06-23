@@ -331,7 +331,7 @@ class WP_Logger_List_Table extends WP_List_Table {
 	 */
 	public function column_log_msg( $item ) {
 		if( 1 == $item['session'] ) {
-			$session_url = admin_url( 'admin.php?page=wp_logger_messages&session-select=' . $item['id'] . $this->custom_query_string );
+			$session_url = esc_url( admin_url( 'admin.php?page=wp_logger_messages&session-select=' . $item['id'] . $this->custom_query_string ) );
 			$message = "<a href='{$session_url}' class='thickbox'>{$item['log_msg']}</a>";
 		} else {
 			$message = $item['log_msg'];
