@@ -87,9 +87,39 @@ function increase_logger_limit( $limit, $log_name ) {
 }
 ```
 
+### Track a Series of Steps
+
+For more complex events, such as API calls, it may be necessary to track a series of messages. To make this possible, WP Logger allows the use of sessions to track a group of events.
+
+Sessions must be explicitly created, but may be explicitly ended or lazily ended by creating a new session.
+
+Here is an example of explicitly creating and ending a session.
+
+```php
+
+// Explicitly creating a new session.
+// Note that severity is optional and defaults to 0.
+do_action( 'wp_logger_create_session', $plugin_slug, $log, $message, $severity = 0 );
+
+	do_action( 'wp_logger_add', $plugin_slug, $log, $message, $severity );
+	do_action( 'wp_logger_add', $plugin_slug, $log, $message, $severity );
+
+// Implicitly ends current session by creating a new session.
+do_action( 'wp_logger_create_session', $plugin_slug, $log, $message, $severity = 0 );
+
+	do_action( 'wp_logger_add', $plugin_slug, $log, $message, $severity );
+	do_action( 'wp_logger_add', $plugin_slug, $log, $message, $severity );
+
+// Explicitly end the current session.
+do_action( 'wp_logger_end_session' );
+
+// This message is not in a session.
+do_action( 'wp_logger_add', $plugin_slug, $log, $message, $severity );
+```
+
 ### Sample Plugin
 
-Below is a sample plugin that demonstrates how to log messages, register a developer email, purge logs, and check whether 
+Below is a sample plugin that demonstrates how to log messages, register a developer email, purge logs, and check whether
 WP Logger is installed by getting the current WP Logger version number.
 
 ```php
