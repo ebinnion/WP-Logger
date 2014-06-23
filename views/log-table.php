@@ -1,7 +1,5 @@
 <div class="wrap">
-	<h2>
-		<?php esc_html_e( 'Plugin Logs', 'wp-logger' ); ?>
-	</h2>
+	<h2><?php esc_html_e( 'Plugin Logs', 'wp-logger' ); ?></h2>
 
 	<form method="post" id="logger-form" action="<?php echo admin_url( 'admin.php?page=wp_logger_messages' ); ?>">
 		<?php wp_nonce_field( 'wp_logger_generate_report', 'wp_logger_form_nonce' ) ?>
@@ -47,15 +45,15 @@
 
 		<table class="wp-list-table <?php echo implode( ' ', $logger_table->get_table_classes() ); ?>">
 			<thead>
-			<tr>
-				<?php $logger_table->print_column_headers(); ?>
-			</tr>
+				<tr>
+					<?php $logger_table->print_column_headers(); ?>
+				</tr>
 			</thead>
 
 			<tfoot>
-			<tr>
-				<?php $logger_table->print_column_headers( false ); ?>
-			</tr>
+				<tr>
+					<?php $logger_table->print_column_headers( false ); ?>
+				</tr>
 			</tfoot>
 
 			<tbody>
