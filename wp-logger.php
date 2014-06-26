@@ -691,12 +691,14 @@ class WP_Logger {
 	 *
 	 * @global $wpdb Global instantiation of wpdb class.
 	 *
+	 * @param int $limit The number of entries to return.
+	 *
 	 * @return array {
 	 *     int $count The number of entries that fit the paraemters.
 	 *     array $entries An array of comment comment rows.
 	 * }
 	 */
-	private function get_entries() {
+	private function get_entries( $limit = 20 ) {
 		global $wpdb;
 
 		$post_where = "post_type = 'wp-logger' AND post_parent != 0";
@@ -750,8 +752,8 @@ class WP_Logger {
 
 		if ( isset( $_GET['paged'] ) && intval( $_GET['paged'] ) > 1 ) {
 			$args['limit'] = $wpdb->prepare( " LIMIT 20 OFFSET %d", ( intval( $_GET['paged'] ) - 1 ) * 20 );
-		} else {
-			$args['limit'] = " LIMIT 20";
+		} else  {
+			$args['limit'] = " LIMIT $limit";
 		}
 
 		$session_select = "SELECT
