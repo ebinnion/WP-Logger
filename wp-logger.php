@@ -399,6 +399,8 @@ class WP_Logger {
 			$current_site = get_option( 'home' );
 			$time         = time();
 
+			$filename = 'wp-logger-' . sanitize_title( $current_site ) . '-' . $time;
+
 			// Make sure that wp-content/wp-logger exists, if not, create it.
 			if ( ! is_dir( WP_CONTENT_DIR . '/wp-logger' ) ) {
 				mkdir( WP_CONTENT_DIR . '/wp-logger' );
@@ -406,7 +408,7 @@ class WP_Logger {
 
 			// Test again to make sure that wp-content/wp-logger exists before attempting to open a file in the directory.
 			if ( is_dir( WP_CONTENT_DIR . '/wp-logger' ) ) {
-				$file = fopen( WP_CONTENT_DIR . "/wp-logger/{$time}.json",'w' );
+				$file = fopen( WP_CONTENT_DIR . "/wp-logger/{$filename}.json",'w' );
 
 				/*
 				 * If the JSON file was created successfully, then let's send that as an attachment.
