@@ -373,11 +373,16 @@ class WP_Logger {
 
 	/**
 	 * AJAX callback to send a log as an email attachment.
+	 *
+	 * @global $wpdb Global instantiation of wpdb class.
+	 *
 	 */
 	public function process_email_log() {
+		global $wpdb;
+
 		check_ajax_referer( 'wp_logger_generate_report', 'wp_logger_form_nonce' );
 
-		$entries = $this->get_entries();
+		$entries = $this->get_entries( 1000 );
 
 		if ( ! empty( $entries ) ) {
 
@@ -393,6 +398,34 @@ class WP_Logger {
 					'log_plugin'   => $entry->log_plugin,
 					'session'      => $entry->session
 				);
+
+				if ( ! empty( $entry->session ) ) {
+					$session_entries = array();
+					$comments_query = new WP_Comment_Query;
+
+					$sessions = $comments_query->query(
+						array(
+							'post_id'          => $entry->the_ID,
+							'comment_approved' => 'wp-logger'
+						)
+					);
+
+					$sessions = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->comments WHERE comment_post_ID = %d", $entry->the_ID ) );
+
+					if ( $sessions ) {
+						foreach ( $sessions as $session ) {
+							$session_entries[] = array(
+								'id'           => $session->comment_ID,
+								'log_severity' => $session->user_id,
+								'log_msg'      => $session->comment_content,
+								'log_date'     => $session->comment_date,
+								'log_plugin'   => $session->comment_author,
+							);
+						}
+
+						$data['session_entries'] = $sessions;
+					}
+				}
 			}
 
 			$plugin_email = isset( $_POST['email-logs'] ) ?  sanitize_email( $_POST['email-logs'] ) : '';
